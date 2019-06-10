@@ -21,7 +21,7 @@ overall_freqs = []
 fig = plt.figure()
 
 numgens = 1000
-N = 10
+N = 100
 
 clr = ["r", "b", "y", "g", "m"]
 

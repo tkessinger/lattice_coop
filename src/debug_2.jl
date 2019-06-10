@@ -10,7 +10,8 @@ using Revise
 using LaTeXStrings
 using LatticeCoop
 
-using PyPlot
+using Plots
+pyplot()
 
 b = 1.02 # benefit to defecting
 κ = 0.1 # temperature parameter
@@ -20,35 +21,30 @@ overall_freqs = []
 
 fig = plt.figure()
 
-numgens = 1000
-N = 100
+numgens = 100
+N = 30
 
-c = 0.0
-for i in 1:5
+c = 0.26
+println("evolving with transaction cost $c")
 
-    println("evolving with transaction cost $c")
+pop = LatticePopulation(b, c, κ, N)
 
-    pop = LatticePopulation(b, c, κ, N)
+history = []
 
-    history = []
-
+push!(history, pop.lattice)
+for i in 1:numgens
+    evolve!(pop)
     push!(history, pop.lattice)
-    for i in 1:numgens
-        evolve!(pop)
-        push!(history, pop.lattice)
-    end
-
-    push!(histories, history)
-
-    coop_freqs = 1.0/N^2*[sum(x) for x in history]
-    push!(overall_freqs, coop_freqs)
-
-    plt.plot(collect(1:numgens+1), coop_freqs, label="run number $i",
-        c = clr[i])
 end
 
+push!(histories, history)
+
+coop_freqs = 1.0/N^2*[sum(x) for x in history]
+push!(overall_freqs, coop_freqs)
+
+plt.plot(collect(1:numgens+1), coop_freqs)
+
 ax = fig.gca()
-ax.legend(loc=2)
 ax.set_xscale("log")
 ax.set_xlabel("time")
 ax.set_ylabel(L"\rho_c")
@@ -56,9 +52,11 @@ ax.set_xlim([1,numgens])
 fig.tight_layout()
 plt.gcf()
 
-# anim = @animate for i=1:length(history)
-#     heatmap(history[i])
-# end
+figure()
+anim = @animate for i=1:length(history)
+    heatmap(history[i])
+end
+gif(anim, "anim_fps15.gif", fps = 15)
 
 #
 # macro_lattices = []

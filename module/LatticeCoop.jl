@@ -57,7 +57,11 @@ module LatticeCoop
         function LatticePopulation(b::Float64, c::Float64, κ::Float64,
             N::Int64, init_freq::Float64=0.5, verbose::Bool=false)
             lattice = BitArray(zeros(N,N))
-            rand_init = CartesianIndices(lattice)[randperm(floor(Int64, init_freq*N^2))]
+            # next line makes a list of the lattice's CartesianIndices,
+            # randomly orders them,
+            # takes the first init_freq (fraction) thereof,
+            # then changes the corresponding lattice points to true
+            rand_init = CartesianIndices(lattice)[randperm(N^2)[1:floor(Int64,N^2*init_freq)]]
             [lattice[x] = true for x in rand_init]
             neighbors = get_neighbors(lattice)
             return new(LatticeGame(b, c, κ), N, lattice, neighbors, 1, verbose)
@@ -65,12 +69,12 @@ module LatticeCoop
         function LatticePopulation(game::LatticeGame,
             N::Int64, init_freq::Float64=0.5, verbose::Bool=false)
             lattice = BitArray(zeros(N,N))
-            rand_init = CartesianIndices(lattice)[randperm(floor(Int64, init_freq*N^2))]
+            # see above for explanation of next line
+            rand_init = CartesianIndices(lattice)[randperm(N^2)[1:floor(Int64,N^2*init_freq)]]
             [lattice[x] = true for x in rand_init]
             neighbors = get_neighbors(lattice)
             return new(game, N, lattice, neighbors, 1, verbose)
         end
-
     end
 
     function assign_transactions(pop::LatticePopulation)
@@ -103,7 +107,7 @@ module LatticeCoop
         end
     end
 
-    function get_payoffs(pop::LatticePopulation, ordering::Array{Int64,2})
+    function get_payoffs(pop::LatticePopulation, ordering::Array{Float64,2})
         # determine the payoff for every individual in the lattice
         payoffs = zeros(size(pop.lattice))
         for (i, indv) in enumerate(CartesianIndices(pop.lattice))
@@ -127,7 +131,6 @@ module LatticeCoop
                     println("individual should pay transaction cost: $pay_cost")
                     println("payoff is $tmp_payoff")
                 end
-
                 tmp_payoffs += tmp_payoff
             end
             payoffs[indv] = tmp_payoffs
@@ -204,7 +207,8 @@ module LatticeCoop
         # (including transaction costs)
         # then updates the lattice as individuals switch strategies
 
-        ordering = assign_transactions(pop)
+        #ordering = assign_transactions(pop)
+        ordering = rand(pop.N, pop.N)
         payoffs = get_payoffs(pop, ordering)
         new_lattice = BitArray(zeros(size(pop.lattice)))
 
@@ -223,14 +227,15 @@ module LatticeCoop
             # pick a random neighbor for each individual and compare energies
             # the energy sets the probability of a state flip
             neighbor = rand(pop.neighbors[indv])
+            energy = energy_function(indv, neighbor, pop, payoffs)
             if pop.verbose
                 println("individual $(indv.I) chose random neighbor $(neighbor.I)")
                 println("individual $(indv.I) had payoff $(payoffs[indv])")
                 println("neighbor $(neighbor.I) had payoff $(payoffs[neighbor])")
-                println("the energy function is $(energy_function(indv, neighbor, pop, payoffs))")
+                println("the energy function is $energy")
                 println("the update function is $(update[indv])")
             end
-            if update[indv] < energy_function(indv, neighbor, pop, payoffs)
+            if update[indv] < energy
                 new_lattice[indv] = pop.lattice[neighbor]
                 if pop.verbose println("so individual $(indv.I) updates their strategy") end
             else
