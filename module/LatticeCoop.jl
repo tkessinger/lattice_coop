@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-## lattice_coop.jl
+## LatticeCoop.jl
 ##
 ## Author: Taylor Kessinger <tkess@sas.upenn.edu>
 ## First stab at duplicating Li et al. (2019).
@@ -40,6 +40,11 @@ module LatticeCoop
             return new(b, c, κ, Float64[1 0; b 0])
         end
         # [1 0; b 0] is the form for the "simplified" prisoner's dilemma game
+
+        # constructor for an "empty" game
+        function LatticeGame()
+            return new(0.0, 1.0, 1.0, Float64[0 0; 0 0])
+        end
     end
 
     mutable struct LatticePopulation
@@ -50,6 +55,7 @@ module LatticeCoop
         N::Int64 # size of lattice
         lattice::BitArray # false are defectors, true are cooperators
         neighbors::Dict{CartesianIndex,Array{CartesianIndex,1}} # list of neighbors for each individual
+        neighbor_pairs::Array{Array{CartesianIndex,1},1} # list of all pairs of neighbors
         generation::Int64
         verbose::Bool # turn this on for error tracking
 
@@ -64,8 +70,11 @@ module LatticeCoop
             rand_init = CartesianIndices(lattice)[randperm(N^2)[1:floor(Int64,N^2*init_freq)]]
             [lattice[x] = true for x in rand_init]
             neighbors = get_neighbors(lattice)
-            return new(LatticeGame(b, c, κ), N, lattice, neighbors, 1, verbose)
+            neighbor_pairs = get_neighbor_pairs(lattice, neighbors)
+            return new(LatticeGame(b, c, κ), N, lattice, neighbors, neighbor_pairs, 1, verbose)
         end
+
+        # constructor if game is already specified
         function LatticePopulation(game::LatticeGame,
             N::Int64, init_freq::Float64=0.5, verbose::Bool=false)
             lattice = BitArray(zeros(N,N))
@@ -73,7 +82,16 @@ module LatticeCoop
             rand_init = CartesianIndices(lattice)[randperm(N^2)[1:floor(Int64,N^2*init_freq)]]
             [lattice[x] = true for x in rand_init]
             neighbors = get_neighbors(lattice)
-            return new(game, N, lattice, neighbors, 1, verbose)
+            neighbor_pairs = get_neighbor_pairs(lattice, neighbors)
+            return new(game, N, lattice, neighbors, neighbor_pairs, 1, verbose)
+        end
+
+        # constructor for an "empty" lattice
+        function LatticePopulation(N::Int64)
+            lattice = BitArray(zeros(N,N))
+            neighbors = get_neighbors(lattice)
+            neighbor_pairs = get_neighbor_pairs(lattice, neighbors)
+            return new(LatticeGame(), N, lattice, neighbors, neighbor_pairs, 1, false)
         end
     end
 
@@ -107,7 +125,50 @@ module LatticeCoop
         end
     end
 
-    function get_payoffs(pop::LatticePopulation, ordering::Array{Float64,2})
+    function who_pays(pop::LatticePopulation)
+        # newer, correct method of determining transaction initiation
+        # see output of src/check_array.jl
+        initiator = Dict{Array{CartesianIndex{2}, 1}, Bool}()
+        for (npi, neighbor_pair) in enumerate(pop.neighbor_pairs)
+            initiator[neighbor_pair] = rand(Bool)
+        end
+        return initiator
+    end
+
+    function get_payoffs(pop::LatticePopulation, initiator::Dict{Array{CartesianIndex{2},1}, Bool})
+        # determine the payoff for every individual in the lattice
+        payoffs = zeros(size(pop.lattice))
+        for (i, indv) in enumerate(CartesianIndices(pop.lattice))
+            # iterate over each individual
+            tmp_payoffs = 0
+            lattice_val = pop.lattice[indv]
+            for (ni, neighbor) in enumerate(pop.neighbors[indv])
+                # iterate over all their neighbors
+                # get everyone's strategy
+                neighbor_val = pop.lattice[neighbor]
+                indv_strat = get_strategy(lattice_val)
+                neighbor_strat = get_strategy(neighbor_val)
+
+                # decide who has to pay the transaction cost
+                neighbor_pair = sort([indv, neighbor])
+                pay_cost = xor(initiator[neighbor_pair], issorted([indv, neighbor]))
+                tmp_payoff = transpose(indv_strat)*pop.game.A*neighbor_strat - pop.game.c*(pay_cost)
+
+                if pop.verbose
+                    #println("individual $(indv.I) has strategy $(strategy_string(indv_strat)) and ordering $(ordering[indv])")
+                    #println("neighbor $(neighbor.I) has strategy $(strategy_string(neighbor_strat)) and ordering $(ordering[neighbor])")
+                    println("individual should pay transaction cost: $pay_cost")
+                    println("payoff is $tmp_payoff")
+                end
+                tmp_payoffs += tmp_payoff
+            end
+            payoffs[indv] = tmp_payoffs
+            if pop.verbose println("individual $(indv.I) had net payoff $tmp_payoffs") end
+        end
+        return payoffs
+    end
+
+    function get_payoffs(pop::LatticePopulation, ordering::Array{Int64,2})
         # determine the payoff for every individual in the lattice
         payoffs = zeros(size(pop.lattice))
         for (i, indv) in enumerate(CartesianIndices(pop.lattice))
@@ -192,6 +253,20 @@ module LatticeCoop
         return neighbors
     end
 
+    function get_neighbor_pairs(lattice::BitArray, neighbors::Dict{CartesianIndex,Array{CartesianIndex,1}})
+        doublets = Array{CartesianIndex{2}, 1}[]
+        for (i, indv) in enumerate(CartesianIndices(lattice))
+            for (ni, neighbor) in enumerate(neighbors[indv])
+                doublet = sort([indv, neighbor])
+                # println("$doublet, $(typeof(doublet)), $(typeof(doublets))")
+                if doublet ∉ doublets
+                    push!(doublets, doublet)
+                end
+            end
+        end
+        return doublets
+    end
+
     function energy_function(indv::CartesianIndex, neighbor::CartesianIndex,
         pop::LatticePopulation, payoffs::Array{Float64})
         # return the "energy" difference between individuals
@@ -207,9 +282,10 @@ module LatticeCoop
         # (including transaction costs)
         # then updates the lattice as individuals switch strategies
 
-        #ordering = assign_transactions(pop)
-        ordering = rand(pop.N, pop.N)
-        payoffs = get_payoffs(pop, ordering)
+        ordering = assign_transactions(pop)
+        #ordering = rand(pop.N, pop.N)
+        initiator = who_pays(pop)
+        payoffs = get_payoffs(pop, initiator)
         new_lattice = BitArray(zeros(size(pop.lattice)))
 
         update = rand(pop.N, pop.N)

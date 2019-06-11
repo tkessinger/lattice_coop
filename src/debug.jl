@@ -18,7 +18,7 @@ c = 1.0 # cost for initiating transaction
 
 verbose = true # turn this on for detailed error tracking
 
-N = 3
+N = 2
 numgens = 1
 
 histories = []
@@ -26,7 +26,7 @@ overall_freqs = []
 
 init_freq = 0.5
 
-pop = LatticePopulation(b, c, κ, N, init_freq, true)
+pop = LatticePopulation(b, c, κ, N, init_freq, verbose)
 
 history = []
 push!(history, pop.lattice)
