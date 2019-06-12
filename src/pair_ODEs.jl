@@ -49,10 +49,10 @@ function transaction_prob(x::Int64, y::Int64)
     # compute the likelihood of neighbors x and y having
     # a certain number of transactions
     if x == 0 && y == 0
-        # this can't happen
+        # this can't happen: one must pay the other
         return 0.0
     elseif x == 4 && y == 4
-        # nor can this
+        # nor can this: both of them can't pay
         return 0.0
     elseif x == 0 || y == 4
         # this means y must have paid x
@@ -99,14 +99,14 @@ function H(indv_i::Bool, indv_j::Bool,
     # this is where we deal with the cost
     # basically, we iterate over each possible transaction arrangement
     # weighted by their probability
-    # this is basically a Binomial(3, 0.5) for each individual
+    # this is a Binomial(3, 0.5) for each individual
     # plus a coin flip to determine who paid whom
     for x in 0:4
         for y in 0:4
             prob = transaction_prob(x,y)
             payoff_exponent = -(i_payoff - pop.game.c*x -
                 j_payoff + pop.game.c*y)/pop.game.κ
-            average_energy += prob/(1+exp(payoff_exponent))
+            average_energy += prob/(1.0+exp(payoff_exponent))
         end
     end
     return average_energy
@@ -117,7 +117,8 @@ function p(strat1::Bool, strat2::Bool, pair_probs::Array{Float64, 1})
     return pair_probs[2*strat1+strat2+1]
 end
 
-function dot_pair_probs(d_pair_probs, pair_probs, pop, t)
+function dot_pair_probs(d_pair_probs::Array{Float64, 1}, pair_probs::Array{Float64, 1},
+    pop::LatticePopulation, t::Float64)
     # println("$t, $pair_probs")
     # this function is a mouthful
     # it implements equations 6 and 7 from Li et al. (2019)
@@ -174,7 +175,7 @@ function dot_pair_probs(d_pair_probs, pair_probs, pop, t)
         # compute the outer sum and multiply terms by the inner sum
         # we need p_cx, p_cy, and p_cz
         outer_sum -= n_c *
-            prod([p(false, i_neighbors[k], pair_probs) for k in 1:3]) *
+            prod([p(true, i_neighbors[k], pair_probs) for k in 1:3]) *
             inner_sum
     end
 
@@ -210,22 +211,23 @@ function dot_pair_probs(d_pair_probs, pair_probs, pop, t)
         # start computing the inner sum
         inner_sum = 0
         for (ji, j_neighbors) in enumerate(j_neighbor_configs)
-            inner_sum += prod([p(true, j_neighbors[k], pair_probs) for k in 1:3]) *
+            inner_sum += prod([p(false, j_neighbors[k], pair_probs) for k in 1:3]) *
                 H(false, true, j_neighbors, i_neighbors, pop)
                 # the above should give H[P_d(u,v,w) → P_c(x,y,z)]
         end
         # compute the outer sum and multiply terms by the inner sum
         # we need p_cx, p_cy, and p_cz
         outer_sum -= (2 - n_c) *
-            prod([p(false, i_neighbors[k], pair_probs) for k in 1:3]) *
+            prod([p(true, i_neighbors[k], pair_probs) for k in 1:3]) *
             inner_sum
     end
     # that should do it
 
-    d_pair_probs[3] = prefactor*outer_sum # p_cd
-    d_pair_probs[2] = prefactor*outer_sum # p_dc
+    # by symmetry, the following two terms are the same
+    d_pair_probs[3] = prefactor*outer_sum # d/dt(p_cd)
+    d_pair_probs[2] = prefactor*outer_sum # d/dt(p_dc)
 
-    # the terms should all sum to zero
+    # the terms should all sum to zero, so this gives d/dt(p_dd)
     d_pair_probs[1] = -sum(d_pair_probs[2:4])
 end
 
@@ -254,13 +256,16 @@ function solve_ODEs(b::Float64, c::Float64, κ::Float64,
     return sol
 end
 
-b_vals = collect(1.0:.01:1.06)
-c_vals = collect(0.0:.1:1.0)
+max_time = 20.0
+
+b_vals = collect(1.0:.02:1.06)
+c_vals = collect(0.0:.2:1.0)
+κ = 0.1
 ρ_c_vals = zeros(length(b_vals), length(c_vals))
 for (bi, b) in enumerate(b_vals)
     for (ci, c) in enumerate(c_vals)
         println("b = $b, c = $c")
-        sol = solve_ODEs(b, c, 0.1, 4.0)
+        sol = solve_ODEs(b, c, κ, max_time)
         ρ_c_vals[bi, ci] = sum(sol.u[end][3:4])
     end
 end
@@ -274,4 +279,5 @@ ax.set_xlabel("c")
 ax.set_ylabel(L"\rho_c")
 ax.set_ylim([0.0,0.7])
 plt.legend(loc=3)
+plt.tight_layout()
 gcf()
