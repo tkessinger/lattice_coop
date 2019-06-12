@@ -3,7 +3,9 @@
 ## LatticeCoop.jl
 ##
 ## Author: Taylor Kessinger <tkess@sas.upenn.edu>
-## First stab at duplicating Li et al. (2019).
+## Module for duplicating results of Li et al. (2019).
+## Exports the types LatticeGame and LatticePopulation,
+## as well as the evolve!(pop::LatticePopulation) function.
 
 # IDEA: I can't imagine that computing the energy gap between every interacting
 # pair is necessary or efficient.
@@ -23,7 +25,7 @@ module LatticeCoop
 
     using Random
 
-    export LatticeGame, LatticePopulation, LastGeneration
+    export LatticeGame, LatticePopulation
     export evolve!
 
     struct LatticeGame
@@ -253,11 +255,16 @@ module LatticeCoop
         return neighbors
     end
 
-    function get_neighbor_pairs(lattice::BitArray, neighbors::Dict{CartesianIndex,Array{CartesianIndex,1}})
+    function get_neighbor_pairs(lattice::BitArray,
+        neighbors::Dict{CartesianIndex,Array{CartesianIndex,1}},
+        remove_duplicates::Bool=true)
         doublets = Array{CartesianIndex{2}, 1}[]
         for (i, indv) in enumerate(CartesianIndices(lattice))
             for (ni, neighbor) in enumerate(neighbors[indv])
-                doublet = sort([indv, neighbor])
+                doublet = [indv, neighbor]
+                if remove_duplicates
+                    sort!(doublet)
+                end
                 # println("$doublet, $(typeof(doublet)), $(typeof(doublets))")
                 if doublet ∉ doublets
                     push!(doublets, doublet)

@@ -10,7 +10,8 @@ using Revise
 using LaTeXStrings
 using LatticeCoop
 
-using PyPlot
+using Plots
+pyplot()
 
 b = 1.02 # benefit to defecting
 κ = 0.1 # temperature parameter
