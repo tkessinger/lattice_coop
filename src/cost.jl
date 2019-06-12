@@ -19,14 +19,13 @@ b = 1.02 # benefit to defecting
 histories = []
 overall_freqs = []
 
-fig = plt.figure()
-
 numgens = 1000
 N = 100
 
 clr = ["r", "b", "y", "g", "m"]
 
 c_list = [0.05, 0.25, 0.45, 0.65, 0.85]
+fig = plt.figure()
 for (ci, c) in enumerate(c_list)
 
     println("evolving with transaction cost $c")
@@ -48,6 +47,7 @@ for (ci, c) in enumerate(c_list)
 
     plt.plot(collect(1:numgens+1), coop_freqs, label="c = $c",
         c = clr[ci])
+    display(fig)
 end
 
 ax = fig.gca()
@@ -57,7 +57,7 @@ ax.set_xlabel("time")
 ax.set_ylabel(L"\rho_c")
 ax.set_xlim([1,numgens])
 fig.tight_layout()
-plt.gcf()
+display(fig)
 
 # anim = @animate for i=1:length(history)
 #     heatmap(history[i])

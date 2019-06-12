@@ -1,9 +1,25 @@
+# Julia output files
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
 deps/deps.jl
 
+# figures
 figures/*
-
 *.pdf
 *.gif
+
+# LaTeX/pdfLaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.dvi
+
+# Bibliography auxiliary files
+*.bbl
+
+# MacOS nuisance file
+.DS_Store

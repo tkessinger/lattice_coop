@@ -38,7 +38,11 @@ module LatticeCoop
         A::Array{Float64,2} # game structure
 
         # constructor
-        function LatticeGame(b::Float64, c::Float64, κ::Float64)
+        function LatticeGame(
+            b::Float64,
+            c::Float64,
+            κ::Float64
+            )
             return new(b, c, κ, Float64[1 0; b 0])
         end
         # [1 0; b 0] is the form for the "simplified" prisoner's dilemma game
@@ -62,8 +66,14 @@ module LatticeCoop
         verbose::Bool # turn this on for error tracking
 
         # constructor
-        function LatticePopulation(b::Float64, c::Float64, κ::Float64,
-            N::Int64, init_freq::Float64=0.5, verbose::Bool=false)
+        function LatticePopulation(
+            b::Float64,
+            c::Float64,
+            κ::Float64,
+            N::Int64,
+            init_freq::Float64=0.5,
+            verbose::Bool=false
+            )
             lattice = BitArray(zeros(N,N))
             # next line makes a list of the lattice's CartesianIndices,
             # randomly orders them,
@@ -77,8 +87,12 @@ module LatticeCoop
         end
 
         # constructor if game is already specified
-        function LatticePopulation(game::LatticeGame,
-            N::Int64, init_freq::Float64=0.5, verbose::Bool=false)
+        function LatticePopulation(
+            game::LatticeGame,
+            N::Int64,
+            init_freq::Float64=0.5,
+            verbose::Bool=false
+            )
             lattice = BitArray(zeros(N,N))
             # see above for explanation of next line
             rand_init = CartesianIndices(lattice)[randperm(N^2)[1:floor(Int64,N^2*init_freq)]]
@@ -89,7 +103,9 @@ module LatticeCoop
         end
 
         # constructor for an "empty" lattice
-        function LatticePopulation(N::Int64)
+        function LatticePopulation(
+            N::Int64
+            )
             lattice = BitArray(zeros(N,N))
             neighbors = get_neighbors(lattice)
             neighbor_pairs = get_neighbor_pairs(lattice, neighbors)
@@ -97,11 +113,14 @@ module LatticeCoop
         end
     end
 
-    function assign_transactions(pop::LatticePopulation)
+    function assign_transactions(
+        pop::LatticePopulation
+        )
         # decide on an ordering for individuals
         # individuals with higher order will always initiate transactions
         # against individuals with lower order
         # (and hence pay the cost)
+        # NOTE: this is deprecated. see output of src/check_array.jl
         (width, height) = size(pop.lattice)
         ordering = reshape(randperm(height*width), height, width)
         if pop.verbose
@@ -111,13 +130,17 @@ module LatticeCoop
         return ordering
     end
 
-    function get_strategy(bool::Bool)
+    function get_strategy(
+        bool::Bool
+        )
         # converts from true-false (coop-defect)
         # into vector form
         return [bool==true; bool==false]
     end
 
-    function strategy_string(strat::Array{Bool})
+    function strategy_string(
+        strat::Array{Bool}
+        )
         if strat == [true; false]
             return "cooperator"
         elseif strat == [false; true]
@@ -127,7 +150,9 @@ module LatticeCoop
         end
     end
 
-    function who_pays(pop::LatticePopulation)
+    function who_pays(
+        pop::LatticePopulation
+        )
         # newer, correct method of determining transaction initiation
         # see output of src/check_array.jl
         initiator = Dict{Array{CartesianIndex{2}, 1}, Bool}()
@@ -137,7 +162,10 @@ module LatticeCoop
         return initiator
     end
 
-    function get_payoffs(pop::LatticePopulation, initiator::Dict{Array{CartesianIndex{2},1}, Bool})
+    function get_payoffs(
+        pop::LatticePopulation,
+        initiator::Dict{Array{CartesianIndex{2},1}, Bool}
+        )
         # determine the payoff for every individual in the lattice
         payoffs = zeros(size(pop.lattice))
         for (i, indv) in enumerate(CartesianIndices(pop.lattice))
@@ -170,7 +198,10 @@ module LatticeCoop
         return payoffs
     end
 
-    function get_payoffs(pop::LatticePopulation, ordering::Array{Int64,2})
+    function get_payoffs(
+        pop::LatticePopulation,
+        ordering::Array{Int64,2}
+        )
         # determine the payoff for every individual in the lattice
         payoffs = zeros(size(pop.lattice))
         for (i, indv) in enumerate(CartesianIndices(pop.lattice))
@@ -202,7 +233,10 @@ module LatticeCoop
         return payoffs
     end
 
-    function get_neighbors(lattice::BitArray, wraparound::Bool=true)
+    function get_neighbors(
+        lattice::BitArray,
+        wraparound::Bool=true
+        )
         # obtain the neighbors for every individual in the lattice
         # this only needs to be run once, at the beginning
         # returns a Dict with a CartesianIndex() key corresponding to the individual
@@ -255,9 +289,11 @@ module LatticeCoop
         return neighbors
     end
 
-    function get_neighbor_pairs(lattice::BitArray,
+    function get_neighbor_pairs(
+        lattice::BitArray,
         neighbors::Dict{CartesianIndex,Array{CartesianIndex,1}},
-        remove_duplicates::Bool=true)
+        remove_duplicates::Bool=true
+        )
         doublets = Array{CartesianIndex{2}, 1}[]
         for (i, indv) in enumerate(CartesianIndices(lattice))
             for (ni, neighbor) in enumerate(neighbors[indv])
@@ -274,8 +310,12 @@ module LatticeCoop
         return doublets
     end
 
-    function energy_function(indv::CartesianIndex, neighbor::CartesianIndex,
-        pop::LatticePopulation, payoffs::Array{Float64})
+    function energy_function(
+        indv::CartesianIndex,
+        neighbor::CartesianIndex,
+        pop::LatticePopulation,
+        payoffs::Array{Float64}
+        )
         # return the "energy" difference between individuals
         # this sets the probability that one of them flips to the other's strategy
         payoff_diff = payoffs[indv] - payoffs[neighbor]
@@ -283,7 +323,9 @@ module LatticeCoop
         return energy
     end
 
-    function evolve!(pop::LatticePopulation)
+    function evolve!(
+        pop::LatticePopulation
+        )
         # evolves the lattice one generation
         # determines an ordering, then determines payoffs
         # (including transaction costs)
@@ -335,4 +377,5 @@ module LatticeCoop
         return pop
     end
 
+# final end statement to close the module
 end

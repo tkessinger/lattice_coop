@@ -1,9 +1,9 @@
 #!/usr/bin/env julia
 
-## lattice_coop.jl
+## debug.jl
 ##
 ## Author: Taylor Kessinger <tkess@sas.upenn.edu>
-## Track cooperator frequency as a function of transaction cost.
+## Debug code for LatticeCoop.jl.
 
 using Random
 using PyPlot
@@ -16,7 +16,7 @@ b = 3.0 # benefit to defecting
 c = 1.0 # cost for initiating transaction
 κ = 0.000001 # temperature parameter
 
-verbose = true # turn this on for detailed error tracking
+verbose = true # track errors
 
 N = 2
 numgens = 1

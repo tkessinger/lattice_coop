@@ -9,8 +9,9 @@
 using Revise
 using DifferentialEquations
 using LatticeCoop
-using Plots
-pyplot()
+using LaTeXStrings
+using PyPlot
+#pyplot()
 
 # this commented block is just to convince me that p_cd := p_dc
 
@@ -261,6 +262,149 @@ function dot_pair_probs(
     d_pair_probs[1] = -sum(d_pair_probs[2:4])
 end
 
+function dot_pair_probs_revised(
+    d_pair_probs::Array{Float64, 1},
+    pair_probs::Array{Float64, 1},
+    game::LatticeGame,
+    t::Float64
+    )
+    # this function is a mouthful
+    # it implements equations 6 and 7 from Li et al. (2019)
+    # pair_probs indices are as follows: dd, dc, cd, cc
+    # here i considered the possibility that some of the indices
+    # have accidentally been switched
+    # (this doesn't appear to be the case)
+
+    # compute the frequencies of c and d
+    (ρ_c, ρ_d) = (pair_probs[4] + pair_probs[2], pair_probs[3] + pair_probs[1])
+
+    # multiplicative term preceding each sum
+    # the 2 comes from symmetry
+    # the ρ terms are normalizing constants
+    # note that this prefactor does not affect equilibrium dynamics
+    prefactor = 2*pair_probs[2]/(ρ_c^3*ρ_d^3)
+
+    # get a list of possible neighbor configurations
+    # there will be 3 of each and they can be true or false
+    i_neighbor_configs = vec(collect(Base.Iterators.product(fill([true, false], 3)...)))
+    j_neighbor_configs = vec(collect(Base.Iterators.product(fill([true, false], 3)...)))
+
+    # compute the change in p_cc
+    outer_sum = 0
+    # first term
+    for (ii, i_neighbors) in enumerate(i_neighbor_configs)
+        # count the number of neighbor cooperators
+        # start computing the inner sum
+        inner_sum = 0
+        # sum over all possible values of u, v, and w
+        # we need p_cu, p_cv, and p_cw for this
+        for (ji, j_neighbors) in enumerate(j_neighbor_configs)
+            n_c = sum(j_neighbors)
+            inner_sum += (n_c + 1) *
+                prod([p(true, j_neighbors[k], pair_probs) for k in 1:3]) *
+                H(true, false, i_neighbors, j_neighbors, game)
+                # the above should give H[P_c(u,v,w) → P_d(x,y,z)]
+                # or, in other words, the probability that
+                # j, a cooperator with neighbors (u, v, w)
+                # will adopt the strategy of
+                # i, a defector with neighbors (x, y, z)
+        end
+        # compute the outer sum and multiply terms by the inner sum
+        # we need p_dx, p_dy, and p_dz
+        outer_sum +=
+            prod([p(false, i_neighbors[k], pair_probs) for k in 1:3]) *
+            inner_sum
+    end
+
+    # second term
+    for (ii, i_neighbors) in enumerate(i_neighbor_configs)
+        # count the number of neighbor cooperators
+        # start computing the inner sum
+        inner_sum = 0
+        # sum over all possible values of u, v, and w
+        # we need p_du, p_dv, and p_dw for this
+        for (ji, j_neighbors) in enumerate(j_neighbor_configs)
+            n_c = sum(j_neighbors)
+            inner_sum += n_c *
+                prod([p(false, j_neighbors[k], pair_probs) for k in 1:3]) *
+                H(false, true, i_neighbors, j_neighbors, game)
+                # the above should give H[P_d(u,v,w) → P_c(x,y,z)]
+                # or, in other words, the probability that
+                # j, a defector with neighbors (u, v, w)
+                # will adopt the strategy of
+                # i, a cooperator with neighbors (x, y, z)
+        end
+        # compute the outer sum and multiply terms by the inner sum
+        # we need p_cx, p_cy, and p_cz
+        outer_sum -=
+            prod([p(true, i_neighbors[k], pair_probs) for k in 1:3]) *
+            inner_sum
+    end
+
+    # this gives d/dt(p_cc)
+    d_pair_probs[4] = prefactor*outer_sum
+
+
+    # compute the change in p_cd
+    outer_sum = 0
+    # first term
+    for (ii, i_neighbors) in enumerate(i_neighbor_configs)
+        # count the number of neighbor cooperators
+        # start computing the inner sum
+        inner_sum = 0
+        # sum over all possible values of u, v, and w
+        # we need p_cu, p_cv, and p_cw for this
+        for (ji, j_neighbors) in enumerate(j_neighbor_configs)
+            n_c = sum(j_neighbors)
+            inner_sum += (1 - n_c) *
+                prod([p(true, j_neighbors[k], pair_probs) for k in 1:3]) *
+                H(true, false, i_neighbors, j_neighbors, game)
+                # the above should give H[P_c(u,v,w) → P_d(x,y,z)]
+                # or, in other words, the probability that
+                # j, a cooperator with neighbors (u, v, w)
+                # will adopt the strategy of
+                # i, a defector with neighbors (x, y, z)
+        end
+        # compute the outer sum and multiply by the inner sum
+        # we need p_dx, p_dy, and p_dz for this
+        outer_sum +=
+            prod([p(false, i_neighbors[k], pair_probs) for k in 1:3]) *
+            inner_sum
+    end
+    # second term
+    for (ii, i_neighbors) in enumerate(i_neighbor_configs)
+        # count the number of neighbor cooperators
+        # start computing the inner sum
+        inner_sum = 0
+        # sum over all possible values of u, v, and w
+        # we need p_du, p_dv, and p_dw for this
+        for (ji, j_neighbors) in enumerate(j_neighbor_configs)
+            n_c = sum(j_neighbors)
+            inner_sum += (2 - n_c) *
+                prod([p(false, j_neighbors[k], pair_probs) for k in 1:3]) *
+                H(false, true, i_neighbors, j_neighbors, game)
+                # the above should give H[P_d(u,v,w) → P_c(x,y,z)]
+                # or, in other words, the probability that
+                # j, a defector with neighbors (u, v, w)
+                # will adopt the strategy of
+                # i, a cooperator with neighbors (x, y, z)
+        end
+        # compute the outer sum and multiply terms by the inner sum
+        # we need p_cx, p_cy, and p_cz
+        outer_sum -=
+            prod([p(true, i_neighbors[k], pair_probs) for k in 1:3]) *
+            inner_sum
+    end
+    # that should do it
+
+    # by symmetry, the following two terms are the same
+    d_pair_probs[3] = prefactor*outer_sum # d/dt(p_cd)
+    d_pair_probs[2] = prefactor*outer_sum # d/dt(p_dc)
+
+    # the terms should all sum to zero, so this gives d/dt(p_dd)
+    d_pair_probs[1] = -sum(d_pair_probs[2:4])
+end
+
 function solve_ODEs(
     b::Float64,
     c::Float64,
@@ -275,7 +419,7 @@ function solve_ODEs(
     pair_probs_0 = [0.25, 0.25, 0.25, 0.25]
     tspan = (0.0, max_time)
     # solve the ODE
-    prob = ODEProblem(dot_pair_probs, pair_probs_0, tspan, game)
+    prob = ODEProblem(dot_pair_probs_revised, pair_probs_0, tspan, game)
     sol = solve(prob)
     if make_plot
         fig = plt.figure()
@@ -296,11 +440,11 @@ function solve_ODEs(
     return sol
 end
 
-max_time = 500.0
+max_time = 20.0
 make_plots = true
 
 b_step = 0.02
-c_step = 0.5
+c_step = 0.2
 
 b_vals = collect(1.0:b_step:1.06)
 c_vals = collect(0.0:c_step:1.0)

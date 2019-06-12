@@ -1,0 +1,73 @@
+\documentclass[13pt]{amsart}
+
+\usepackage{amsfonts,latexsym,amsthm,amssymb,amsmath,amscd,euscript}
+\usepackage{framed}
+\usepackage{fullpage}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage{charter}
+
+\begin{document}
+
+\section*{Pair approximation notes}
+
+Let's consider two individuals $i$ and $j$.
+$i$ has neighbors $(x, y, z)$, and $j$ has neighbors $(u, v, w)$.
+We'll consider all the ways $i$ and $j$ can change each other from type $c$ to type $d$ or vice versa.
+
+\textbf{General case.}
+The probability that a pair $(s, s^\prime)$ becomes $(s^\prime, s)$ is given by
+\begin{equation}
+  p_{s,s^\prime \to s, s} = \sum_{x,y,z} \sum_{u,v,w} H_{s^\prime \to s} \frac{p_{s,x}p_{s,y}p_{s,z} p_{s,s^\prime} p_{s^\prime,u} p_{s^\prime,v} p_{s^\prime,w}}{\rho_s^3 \rho_{s^\prime}^3}.
+\end{equation}
+The denominator comes from the fact that we're approximating all the higher order correlation terms via their doublet probabilities: $p_{s,s^\prime,s^{\prime \prime}} = \frac{p_{s,s^\prime}p_{s^\prime, s^{\prime prime}}}{p_{s^\prime}}$.
+In effect, we're correcting for the fact that $s^\prime$ appears multiple times in that expresison.
+
+In this case, the pair probability $p_{s,s^\prime}$ would decrease, but the pair probability $p_{s,s}$ would increase.
+However, likewise the pair probabilities $(p_{s^\prime,u}, p_{s^\prime,y}, p_{s^\prime,z})$ would decrease, and the pair probabilities $(p_{s,x}, p_{s,y}, p_{s,z})$ would increase.
+
+With this in mind, we can get some sense of where the equations for $\dot{p}_{cc}$ and $\dot{p}_{cd}$ come from:
+
+\begin{align}
+    \begin{split}
+        \label{eq:p_cc}
+        \dot{p}_{c,c} =
+        \frac{2p_{c,d}}{\rho_c^3 \rho_d^3} \bigg\{ & \sum_{x,y,z} \left[n_c (x,y,z) + 1 \right] p_{d,x} p_{d,y} p_{d,z}
+        \sum_{u,v,w} p_{c,u} p_{c,v} p_{c,w} H \left[ P_c (u,v,w) \to P_d (x,y,z) \right] \\
+            - & \sum_{x,y,z} n_c(x,y,z) p_{c,x} p_{c,y} p_{c,z}
+        \sum_{u,v,w} p_{d,u} p_{d,v} p_{d,w} H \left[ P_d (u,v,w) \to P_c (x,y,z) \right] \bigg\}
+    \end{split}
+    \\
+    \begin{split}
+        \label{eq:p_cd}
+        \dot{p}_{c,d}  =
+        \frac{2p_{c,d}}{\rho_c^3 \rho_d^3} \bigg\{ & \sum_{x,y,z} \left[1 - n_c (x,y,z)\right] p_{d,x} p_{d,y} p_{d,z}
+        \sum_{u,v,w} p_{c,u} p_{c,v} p_{c,w} H \left[ P_c (u,v,w) \to P_d (x,y,z) \right] \\
+            - & \sum_{x,y,z} \left[ 2 - n_c(x,y,z) \right] p_{c,x} p_{c,y} p_{c,z}
+        \sum_{u,v,w} p_{d,u} p_{d,v} p_{d,w} H \left[ P_d (u,v,w) \to P_c (x,y,z) \right] \bigg\}
+    \end{split}
+\end{align}
+
+\textbf{Scenario 1.}
+$i$ is $d$ and $j$ is $d$.
+Nothing can happen.
+
+\textbf{Scenario 2.}
+$i$ is $c$ and $j$ is $c$.
+Nothing can happen.
+
+\textbf{Scenario 3.}
+$i$ is $d$ and $j$ is $c$.
+This (or its mirror image) is the only way anything interesting can happen.
+It arises with initial probability $p_{c,d} (:= p_{d,c})$, or an overall configuration probability $\frac{p_{d,x}p_{d,y}p_{d,z} p_{d,c} p_{c,u} p_{c,v} p_{c,w}}{\rho_c^3 \rho_d^3}$.
+$i$ has payoff $P_d(x, y, z)$ and $j$ has payoff $P_c(u, v, w)$.
+
+\emph{First line of equation \ref{eq:p_cc}}.
+$i$ has $n_c(x, y, z) + 1$ neighbors who are $c$, where $n_c(x,y,z)$ is just the number among $(x, y, z)$ who are $c$ and the $+1$ comes from the fact that $j$ is $c$.
+
+Let's say $j$ adopts $i$'s strategy, which happens with probability $H\left[P_c(u,v,w) \to P_d(x,y,z) \right]$.
+This increases the pair probability $p_{c,c}$ and the pair probabilities $p_{c,u}, p_{c,v}, p_{c,w}$ but decreases the pair probabilities $p_{d,x}, p_{d,y}, p_{d,z}$.
+Note that $i$ has $n_c(x, y, z) + 1$ neighbors who are $c$, where $n_c(x,y,z)$ is just the number among $(x, y, z)$ who are $c$ and the $+1$ comes from the fact that $j$ is $c$.
+
+
+\end{document}

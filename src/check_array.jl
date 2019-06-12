@@ -8,7 +8,7 @@
 ## (Spoiler: They aren't.
 ## The "ordering" method creates a uniform distribution of transactions.
 ## The "actually consider each pair and make one the initiator"
-## doesn't--it's a geometric distribution with p=0.5.)
+## doesn't--it's a binomial distribution with p=0.5.)
 
 using Revise
 using PyPlot

@@ -1,9 +1,9 @@
 #!/usr/bin/env julia
 
-## cost.jl
+## debug_2.jl
 ##
 ## Author: Taylor Kessinger <tkess@sas.upenn.edu>
-## Track cooperator frequency as a function of transaction cost.
+## Debug code for LatticeCoop.jl.
 
 using Random
 using Revise
@@ -18,8 +18,6 @@ b = 1.02 # benefit to defecting
 
 histories = []
 overall_freqs = []
-
-fig = plt.figure()
 
 numgens = 100
 N = 30
@@ -40,7 +38,8 @@ end
 push!(histories, history)
 
 coop_freqs = 1.0/N^2*[sum(x) for x in history]
-push!(overall_freqs, coop_freqs)
+
+fig = plt.figure()
 
 plt.plot(collect(1:numgens+1), coop_freqs)
 
@@ -50,7 +49,7 @@ ax.set_xlabel("time")
 ax.set_ylabel(L"\rho_c")
 ax.set_xlim([1,numgens])
 fig.tight_layout()
-plt.gcf()
+display(fig)
 
 figure()
 anim = @animate for i=1:length(history)
