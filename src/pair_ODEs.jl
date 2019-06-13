@@ -108,7 +108,7 @@ function H(
     for i_trans in 0:4
         for j_trans in 0:4
             prob = transaction_prob(i_trans, j_trans)
-            payoff_exponent = ((i_payoff - game.c*i_trans) -
+            payoff_exponent = -((i_payoff - game.c*i_trans) -
                 (j_payoff - game.c*j_trans))/game.κ
             average_energy += prob/(1.0+exp(payoff_exponent))
         end
@@ -302,7 +302,7 @@ function dot_pair_probs_revised(
             n_c = sum(j_neighbors)
             inner_sum += (n_c + 1) *
                 prod([p(true, j_neighbors[k], pair_probs) for k in 1:3]) *
-                H(true, false, i_neighbors, j_neighbors, game)
+                H(false, true, i_neighbors, j_neighbors, game)
                 # the above should give H[P_c(u,v,w) → P_d(x,y,z)]
                 # or, in other words, the probability that
                 # j, a cooperator with neighbors (u, v, w)
@@ -327,7 +327,7 @@ function dot_pair_probs_revised(
             n_c = sum(j_neighbors)
             inner_sum += n_c *
                 prod([p(false, j_neighbors[k], pair_probs) for k in 1:3]) *
-                H(false, true, i_neighbors, j_neighbors, game)
+                H(true, false, j_neighbors, i_neighbors, game)
                 # the above should give H[P_d(u,v,w) → P_c(x,y,z)]
                 # or, in other words, the probability that
                 # j, a defector with neighbors (u, v, w)
@@ -358,7 +358,7 @@ function dot_pair_probs_revised(
             n_c = sum(j_neighbors)
             inner_sum += (1 - n_c) *
                 prod([p(true, j_neighbors[k], pair_probs) for k in 1:3]) *
-                H(true, false, i_neighbors, j_neighbors, game)
+                H(false, true, i_neighbors, j_neighbors, game)
                 # the above should give H[P_c(u,v,w) → P_d(x,y,z)]
                 # or, in other words, the probability that
                 # j, a cooperator with neighbors (u, v, w)
@@ -382,7 +382,7 @@ function dot_pair_probs_revised(
             n_c = sum(j_neighbors)
             inner_sum += (2 - n_c) *
                 prod([p(false, j_neighbors[k], pair_probs) for k in 1:3]) *
-                H(false, true, i_neighbors, j_neighbors, game)
+                H(true, false, i_neighbors, j_neighbors, game)
                 # the above should give H[P_d(u,v,w) → P_c(x,y,z)]
                 # or, in other words, the probability that
                 # j, a defector with neighbors (u, v, w)
@@ -436,15 +436,16 @@ function solve_ODEs(
         plt.tight_layout()
         display(fig)
     end
-    # this has several attributes, including the time and the actual solution
+    # this has several attributes, including the time sol.t
+    # and the actual solution sol.u
     return sol
 end
 
 max_time = 20.0
 make_plots = true
 
-b_step = 0.02
-c_step = 0.2
+b_step = 0.01
+c_step = 0.1
 
 b_vals = collect(1.0:b_step:1.06)
 c_vals = collect(0.0:c_step:1.0)

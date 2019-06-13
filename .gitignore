@@ -9,6 +9,9 @@ figures/*
 *.pdf
 *.gif
 
+# output files
+output/*
+
 # LaTeX/pdfLaTeX auxiliary files
 *.aux
 *.log
@@ -20,6 +23,7 @@ figures/*
 
 # Bibliography auxiliary files
 *.bbl
+*.blg
 
 # MacOS nuisance file
 .DS_Store

@@ -1,11 +1,30 @@
 \documentclass[13pt]{amsart}
 
 \usepackage{amsfonts,latexsym,amsthm,amssymb,amsmath,amscd,euscript}
-\usepackage{framed}
+%\usepackage{framed}
 \usepackage{fullpage}
 \usepackage{hyperref}
 \usepackage{mathtools}
 \usepackage{charter}
+\usepackage{natbib}
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage[usenames,dvipsnames]{pstricks}
+
+\usepackage{hyperref}
+\hypersetup{
+    pdffitwindow=false,            % window fit to page
+    pdfstartview={Fit},            % fits width of page to window
+    pdftitle={Pair approximation notes},     % document title
+    pdfauthor={Taylor Kessinger},         % author name
+    pdfsubject={},                 % document topic(s)
+    pdfnewwindow=true,             % links in new window
+    colorlinks=true,               % coloured links, not boxed
+    linkcolor=OrangeRed,      % colour of internal links
+    citecolor=ForestGreen,       % colour of links to bibliography
+    filecolor=Orchid,            % colour of file links
+    urlcolor=Cerulean           % colour of external links
+}
 
 \begin{document}
 
@@ -13,21 +32,59 @@
 
 Let's consider two individuals $i$ and $j$.
 $i$ has neighbors $(x, y, z)$, and $j$ has neighbors $(u, v, w)$.
-We'll consider all the ways $i$ and $j$ can change each other from type $c$ to type $d$ or vice versa.
+We'll consider all the ways $i$ and $j$ can change each other from type $c$ to type $d$ or vice versa, and how these affect the pair probabilities.
 
-\textbf{General case.}
-The probability that a pair $(s, s^\prime)$ becomes $(s^\prime, s)$ is given by
+\subsection*{An infuriating note on notation}
+
+Unfortunately \citet{hauert.szabo_2005} and \citet{li.etal_2019} have slightly different notation.
+We'll unpack this very carefully to avoid confusion.
+In \citet{hauert.szabo_2005}, the probability that $x$ will update its strategy to that of $y$ is denoted
 \begin{equation}
-  p_{s,s^\prime \to s, s} = \sum_{x,y,z} \sum_{u,v,w} H_{s^\prime \to s} \frac{p_{s,x}p_{s,y}p_{s,z} p_{s,s^\prime} p_{s^\prime,u} p_{s^\prime,v} p_{s^\prime,w}}{\rho_s^3 \rho_{s^\prime}^3}.
+  \mathbb{W}(x \leftarrow y) = f(P_y - P_x) = \frac{1}{1+\exp\left[ -(P_y - P_x)/\kappa \right] }.
 \end{equation}
-The denominator comes from the fact that we're approximating all the higher order correlation terms via their doublet probabilities: $p_{s,s^\prime,s^{\prime \prime}} = \frac{p_{s,s^\prime}p_{s^\prime, s^{\prime prime}}}{p_{s^\prime}}$.
-In effect, we're correcting for the fact that $s^\prime$ appears multiple times in that expresison.
+In \citet{li.etal_2019}, the same would be denoted
+\begin{equation}
+  H_{s_x \rightarrow s_y} = \frac{1}{1+\exp\left[ (P_x - P_y)/\kappa \right] }.
+\end{equation}
+(Note that the actual probability expressions are the same.)
+So it seems \citet{hauert.szabo_2005} think of $y$ ``invading'' $x$, whereas \citet{li.etal_2019} think of $x$ ``adopting'' $y$'s strategy.
+In \citet{hauert.szabo_2005}, the below equations \ref{eq:p_cc} and \ref{eq:p_cd} would be represented as
+\begin{align}
+    \begin{split}
+        \label{eq:p_cc_hauert}
+        \dot{p}_{c,c} =
+        \frac{2p_{c,d}}{\rho_c^3 \rho_d^3} \bigg\{ & \sum_{x,y,z} \left[n_c (x,y,z) + 1 \right] p_{d,x} p_{d,y} p_{d,z}
+        \sum_{u,v,w} p_{c,u} p_{c,v} p_{c,w} f(P_c(u, v, w) - P_d(x, y, z)) \\
+            - & \sum_{x,y,z} n_c(x,y,z) p_{c,x} p_{c,y} p_{c,z}
+        \sum_{u,v,w} p_{d,u} p_{d,v} p_{d,w} f(P_d(u, v, w) - P_c(x, y, z)) \bigg\}
+    \end{split}
+    \\
+    \begin{split}
+        \label{eq:p_cd_hauert}
+        \dot{p}_{c,d}  =
+        \frac{2p_{c,d}}{\rho_c^3 \rho_d^3} \bigg\{ & \sum_{x,y,z} \left[1 - n_c (x,y,z)\right] p_{d,x} p_{d,y} p_{d,z}
+        \sum_{u,v,w} p_{c,u} p_{c,v} p_{c,w} f(P_c(u, v, w) - P_d(x, y, z)) \\
+            - & \sum_{x,y,z} \left[ 2 - n_c(x,y,z) \right] p_{c,x} p_{c,y} p_{c,z}
+        \sum_{u,v,w} p_{d,u} p_{d,v} p_{d,w} f(P_d(u, v, w) - P_c(x, y, z)) \bigg\}
+    \end{split}
+\end{align}
+Note that, in line 1 of equation \ref{eq:p_cc_hauert}, $f(P_c(u, v, w) - P_d(x,y,z))$ indicates that the individual with strategy $d$, whom we would call $i$, is adopting the strategy $c$ of individual $j$.
+In general it is the \emph{second} individual on each line ($i$, with neighbors $j$ and $x, y, z$) who is adopting the strategy of the \emph{first} individual.
+
+\subsection*{General case.}
+
+The probability that a pair $(s, s^\prime)$ becomes $(s, s)$ is given by
+\begin{equation}
+  p_{s,s^\prime \to s, s} = \sum_{x,y,z} \sum_{u,v,w} H_{s^\prime to s} \frac{p_{s,x}p_{s,y}p_{s,z} p_{s,s^\prime} p_{s^\prime,u} p_{s^\prime,v} p_{s^\prime,w}}{\rho_s^3 \rho_{s^\prime}^3}.
+\end{equation}
+The denominator comes from the fact that we're approximating all the higher order correlation terms via their doublet probabilities: $p_{s,s^\prime,s^{\prime \prime}} = \frac{p_{s,s^\prime}p_{s^\prime, s^{\prime \prime}}}{p_{s^\prime}}$.
+In effect, we're correcting for the fact that $s^\prime$ appears multiple times in that expression.
 
 In this case, the pair probability $p_{s,s^\prime}$ would decrease, but the pair probability $p_{s,s}$ would increase.
 However, likewise the pair probabilities $(p_{s^\prime,u}, p_{s^\prime,y}, p_{s^\prime,z})$ would decrease, and the pair probabilities $(p_{s,x}, p_{s,y}, p_{s,z})$ would increase.
+So, overall, the idea is to consider what happens to the surrounding pair probabilities as a result of $j$ and $i$'s strategies interacting.
 
-With this in mind, we can get some sense of where the equations for $\dot{p}_{cc}$ and $\dot{p}_{cd}$ come from:
-
+With this in mind, we can get some sense of where the equations for $\dot{p}_{c,c}$ and $\dot{p}_{c,d}$ come from in \citet{li.etal_2019}:
 \begin{align}
     \begin{split}
         \label{eq:p_cc}
@@ -47,27 +104,58 @@ With this in mind, we can get some sense of where the equations for $\dot{p}_{cc
         \sum_{u,v,w} p_{d,u} p_{d,v} p_{d,w} H \left[ P_d (u,v,w) \to P_c (x,y,z) \right] \bigg\}
     \end{split}
 \end{align}
+We'll work through each equation term by term (by minuend and subtrahend).
 
-\textbf{Scenario 1.}
-$i$ is $d$ and $j$ is $d$.
-Nothing can happen.
+\subsubsection*{First line (minuend) of equation \ref{eq:p_cc}.}
 
-\textbf{Scenario 2.}
-$i$ is $c$ and $j$ is $c$.
-Nothing can happen.
+Let $i$ be $d$ and $j$ be $c$.
 
-\textbf{Scenario 3.}
-$i$ is $d$ and $j$ is $c$.
-This (or its mirror image) is the only way anything interesting can happen.
-It arises with initial probability $p_{c,d} (:= p_{d,c})$, or an overall configuration probability $\frac{p_{d,x}p_{d,y}p_{d,z} p_{d,c} p_{c,u} p_{c,v} p_{c,w}}{\rho_c^3 \rho_d^3}$.
-$i$ has payoff $P_d(x, y, z)$ and $j$ has payoff $P_c(u, v, w)$.
-
-\emph{First line of equation \ref{eq:p_cc}}.
-$i$ has $n_c(x, y, z) + 1$ neighbors who are $c$, where $n_c(x,y,z)$ is just the number among $(x, y, z)$ who are $c$ and the $+1$ comes from the fact that $j$ is $c$.
-
-Let's say $j$ adopts $i$'s strategy, which happens with probability $H\left[P_c(u,v,w) \to P_d(x,y,z) \right]$.
+Now $i$ adopts $j$'s strategy, which happens with probability $H\left[P_c(u,v,w) \to P_d(x,y,z) \right]$.
 This increases the pair probability $p_{c,c}$ and the pair probabilities $p_{c,u}, p_{c,v}, p_{c,w}$ but decreases the pair probabilities $p_{d,x}, p_{d,y}, p_{d,z}$.
-Note that $i$ has $n_c(x, y, z) + 1$ neighbors who are $c$, where $n_c(x,y,z)$ is just the number among $(x, y, z)$ who are $c$ and the $+1$ comes from the fact that $j$ is $c$.
 
+Note that $i$ has $n_c(x, y, z) + 1$ neighbors who are $c$, where $n_c(x,y,z)$ is just the number among $(x, y, z)$ who are $c$ and the $+ 1$ comes from the fact that $j$ is $c$.
+Note, also, that $i$ initially belongs to \emph{zero} $(c,c)$ pairs.
+Thus, $p_{c,c}$ increases by a factor $n_c(x,y,z) + 1$ times the relevant probabilities.
+In other words, $n_c(x,y,z) + 1 $ is just the number of $(c,c)$ pairs that are created by this switch.
+The factor of $2$ comes from the fact that the situation could be flipped ($j$ could be $d$ and $i$ could be $c$, invading it).
 
+\subsubsection*{Second line (subtrahend) of equation \ref{eq:p_cc}.}
+We now let $i$ be $c$ and $j$ be $d$.
+Initially, $i$ has $n_c(x,y,z)$ $c$ neighbors and belongs to that many pairs.
+$i$ then adopts $j$'s strategy, becoming $d$.
+Afterwards, $i$ will belong to \emph{zero} such pairs.
+So, in total, $-n_c(x,y,z)$ pairs were created.
+
+\subsubsection*{First line (minuend) of equation \ref{eq:p_cd}.}
+
+Again, we let $i$ be $d$ and $j$ be $c$.
+If $i$ has $n_c(x,y,z)$ $c$ neighbors, then $i$ currently belongs to $n_c(x,y,z) + 1$ pairs that are $(c,d)$.
+
+Afterwards, $i$ is now $c$.
+There are now $3 - n_c(x,y,z)$ $(c,d)$ pairs.
+The difference is $2 - 2n_c(x,y,z)$, which (upon careful enumeration of each possible state) is actually right, but something is missing.
+I think the problem is that this is the change in the number of $(c,d)$ \emph{and} $(d,c)$ pairs.
+If we pull out a factor of $2$, we have $2 \left[ 1 - n_c(x,y,z) \right]$.
+
+\subsubsection*{Second line (subtrahend) of equation \ref{eq:p_cd}.}
+
+We let $i$ be $c$ and $j$ be $d$.
+Initially, $i$ belongs to $3 - n_c(x,y,z) + 1 = 4 - n_c(x,y,z)$ pairs that are $(c,d)$.
+Afterwards, $i$ belongs to $n_c(x,y,z)$ pairs that are $(c,d)$.
+($i$ is now $d$, so any of its neighbors make a $(c,d)$ pair.)
+This difference is $2n_c(x,y,z) - 4$.
+Alternately, we could have used the above expression and replaced $n_d = 3 - n_c$, noting that $2 - 2n_c = 2 - 2(3 - n_c) = 2n_c - 4$.
+Equivalently, the prefactor is $- 2\left[ 2 - n_c(x,y,z)\right]$.
+
+\subsection*{These answers are actually correct.}
+It is instructive to note that if both the calculated coefficients for the terms in equation \ref{eq:p_cd} are divided by $2$, the math works.
+This is sort of intuitive: we've implicitly been counting both $(c,d)$ and $(d,c)$, and the two are in principle not the same.
+So maybe I'm actually satisfied after all.
+Still the nagging question remains.
+Several of the equations in \citet{li.etal_2019}, as well as the earlier \citet{perc.marhl_2006}, appear to be typeset incorrectly (or else I'm simply misreading them), as they indicate that $H\left[ p_s \to p_{s^\prime} \right]$ refers to $s$ switching to $s^\prime$.
+It does not.
+It can only refer to the opposite.
+
+\bibliographystyle{plainnat}
+\bibliography{notes_bib}
 \end{document}
