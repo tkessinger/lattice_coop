@@ -58,6 +58,7 @@ function stats_H(
         i_payoff += transpose(i_strat)*game.A*neighbor_strat
     end
     i_payoff += transpose(i_strat)*game.A*j_strat
+
     for (k, k_val) in enumerate(j_neighbors)
         neighbor_strat = [k_val == true; k_val == false]
         j_payoff += transpose(j_strat)*game.A*neighbor_strat
@@ -101,6 +102,16 @@ function stats_H(
     average_energy, var_energy]
 end
 
+function strategy_string(
+    strat::Bool,
+    full_name::Bool=false
+    )
+    if strat==false && full_name return "defector"
+    elseif strat==false return "d"
+    elseif strat==true && full_name return "cooperator"
+    elseif strat==true return "c" end
+end
+
 function transaction_prob(
     i::Int64,
     j::Int64
@@ -136,10 +147,18 @@ b_step = 0.02
 c_list = 0.0:c_step:1.0
 b_list = 1.0:b_step:1.06
 
+
 i_strat = true
-j_strat = false
+j_strat = true
 
 H_array = zeros(4,4,length(c_list), length(b_list), 6)
+# last index:
+# 1. E(F_i)
+# 2. Var(F_i)
+# 3. E(F_j)
+# 4. Var(F_j)
+# 5. E(H)
+# 6. Var(H)
 
 κ = 0.1
 
@@ -152,7 +171,8 @@ for n_c_i in n_c_i_list
         for (ci, c_val) in enumerate(c_list)
             for (bi, b_val) in enumerate(b_list)
                 game = LatticeGame(b_val, c_val, κ)
-                H_array[n_c_i+1,n_c_j+1,ci,bi,:] = stats_H(i_strat, j_strat, i_neighbors, j_neighbors, game)
+                H_array[n_c_i+1,n_c_j+1,ci,bi,:] =
+                    stats_H(i_strat, j_strat, i_neighbors, j_neighbors, game)
             end
         end
     end
@@ -164,14 +184,21 @@ labels = [L"\bar{F_i}",
     L"\mathrm{Var}(F_i)",
     L"\bar{H}",
     L"\mathrm{Var}(H)"]
-for k in 6:6
-    fig, axs = plt.subplots(4,4,figsize=(10,10),sharex="row", sharey="col")
+save_strings = ["avg_Fi",
+    "var_Fi",
+    "avg_Fj",
+    "var_Fj",
+    "avg_H",
+    "var_H"]
+
+for k in 1:6
+    fig, axs = plt.subplots(4,4,figsize=(10,10), sharex="all", sharey="all")
     for n_c_i in n_c_i_list
         for n_c_j in n_c_j_list
             tmp_ax = axs[n_c_i+1,n_c_j+1]
             for (bi, b_val) in enumerate(b_list)
                 #tmp_ax.vlines(0.26,0,.15, ls="dotted")
-                tmp_ax.plot(c_list, H_array[n_c_i+1,n_c_i+1,:,bi,k],label="b = $b_val")
+                tmp_ax.plot(c_list, H_array[n_c_i+1,n_c_j+1,:,bi,k],label="b = $b_val")
             end
             tmp_ax.set_title(L"n_{c_i} = "*string(n_c_i) * L", n_{c_j} = "*string(n_c_j))
             #tmp_ax.set_xlabel(L"c")
@@ -185,8 +212,12 @@ for k in 6:6
     [ax.set(xlabel=L"c") for ax in axs[4,:]]
     [ax.set(ylabel=labels[k]) for ax in axs[:,1]]
     axs[4,1].legend(loc=2)
+    fig.suptitle("i = $(strategy_string(i_strat, true)), j = $(strategy_string(j_strat, true))")
     plt.tight_layout()
+    fig.subplots_adjust(top=0.93)
     display(fig)
+    plt.savefig("figures/H_stats_i_" * strategy_string(i_strat) * "_j_" *
+        strategy_string(j_strat) * "_" * save_strings[k] * ".pdf")
 end
 # for ax in axs.flat:
 #     ax.set(xlabel="x-label", ylabel='y-label')
