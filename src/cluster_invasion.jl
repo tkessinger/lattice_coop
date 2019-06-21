@@ -148,8 +148,8 @@ c_list = 0.0:c_step:1.0
 b_list = 1.0:b_step:1.06
 
 
-i_strat = true
-j_strat = true
+i_strat = false
+j_strat = false
 
 H_array = zeros(4,4,length(c_list), length(b_list), 6)
 # last index:
