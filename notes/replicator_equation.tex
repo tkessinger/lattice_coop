@@ -1,0 +1,212 @@
+\documentclass[13pt, justified]{tufte-handout}
+
+\usepackage{amsfonts,latexsym,amsthm,amssymb,amsmath,amscd,euscript}
+%\usepackage{framed}
+%\usepackage{fullpage}
+\usepackage{hyperref}
+\usepackage{mathtools}
+%\usepackage{charter}
+\usepackage{natbib}
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage[usenames,dvipsnames]{pstricks}
+
+\usepackage{hyperref}
+\hypersetup{
+    pdffitwindow=false,            % window fit to page
+    pdfstartview={Fit},            % fits width of page to window
+    pdftitle={Pair approximation notes},     % document title
+    pdfauthor={Taylor Kessinger},         % author name
+    pdfsubject={},                 % document topic(s)
+    pdfnewwindow=true,             % links in new window
+    colorlinks=true,               % coloured links, not boxed
+    linkcolor=OrangeRed,      % colour of internal links
+    citecolor=ForestGreen,       % colour of links to bibliography
+    filecolor=Orchid,            % colour of file links
+    urlcolor=Cerulean           % colour of external links
+}
+
+\begin{document}
+
+\section*{Replicator equation notes}
+
+We'll proceed to try and derive the replicator equation from \citet{ohtsuki.nowak_2006}, which is
+\begin{equation}
+    \dot{x}_i = x_i\left[ \sum_{j=1}^n x_j(a_{ij} + b_{ij}) - \phi \right].
+\end{equation}
+To get there, we need to first consider how the conditional frequencies of each type $q_{i|j} = x_{ij}/x_j$ behave: we'll assume those equilibrate quickly in response to changes in the actual frequencies $x_i$.
+We'll use the pair approximation, which is simply to say that $q_{i|jl} = q_{i|j}$, i.e., the behavior of a neighbor two steps away playing strategy $l$ does not affect the $ij$ frequencies.
+
+The first equation we need to derive is this monster from \citet{ohtsuki.nowak_2006}:
+\begin{equation}
+    \dot{q}_{i|j} = \frac{\dot{x}_{ij}}{x_j} = \frac{2}{k}\left[ \overbrace{\delta_{ij}}^{\textrm{$i=j$ correction}} + \underbrace{(k-1)\left( \sum_l q_{i|l}q_{l|j} \right)}_{\textrm{pairs created}} - \overbrace{kq_{i|j}}^{\textrm{pairs destroyed}} \right] + O(w),
+    \label{eq:bd_update}
+\end{equation}
+where $O(w)$ is because we're assuming weak selection (hence why $x_j$ is treated as constant) and $k$ is the degree of the graph.
+Let's see if we can figure out where this equation comes from.
+
+\subsection{Two-strategy case}
+
+First, let's consider the case where there are only two strategies: $i$ and $j$.
+With probability $x_j$, a $j$ individual is chosen to reproduce.
+It replaces an $i$ neighbor with probability $q_{i|j}$.
+Said $i$ neighbor will have $(k-1)q_{i|i}$ $i$ neighbors, so an average of
+$(k-1)q_{i|j}q_{i|i}$ (the $i$ term in the ``pairs created'' sum) $ij$ pairs are created as a result.
+However, that $i$ neighbor will itself have been part of $1 + (k-1)q_{j|i}$ $ij$ pairs, so an average of $q_{i|j}[ (k-1)q_{j|i} + 1 ]$ $ij$ pairs are destroyed as a result.
+
+It replaces a $j$ neighbor with probability $q_{j|j}$.
+There had better be no change in $x_{ij}$ as a result of this.
+That $j$ neighbor will have $(k-1)q_{i|j}$ $i$ neighbors, so an average of $q_{j|j}(k-1)q_{i|j}$ (the $j$ term in the ``pairs created'' sum) pairs are ``created''.
+These are ``fictitious'' pairs that we will have to ``destroy'' later to avoid any net change in $x_{ij}$; that is, effectively $(k-1)q_{j|j}q_{i|j}$ pairs are ``destroyed'' in turn.
+Combining this with the above expression for the number of pairs that are destroyed when $j$ replaces $i$ yields $q_{i|j} [ (k-1)q_{j|i} + 1 + (k-1)q_{j|j} ]$.
+
+Now suppose an $i$ individual is chosen, with probability $x_i$.
+It replaces a $j$ neighbor with probability $q_{j|i}$.
+Using the same argument as above, we have that $(k-1)q_{j|i}q_{j|j}$ $ij$ pairs are created, and in turn $q_{j|i}[ (k-1)q_{i|j} + 1 ]$ are destroyed.
+
+$i$ replaces an $i$ neighbor with probability $q_{i|i}$.
+It has $(k-1)q_{j|i}$ $j$ neighbors, so $q_{i|i}(k-1)q_{j|i}$ pairs are ``created''.
+As before, these are fictitious pairs that will have to be destroyed.
+Combining this with the above destruction term yields $q_{j|i}[ (k-1)q_{i|j} + 1 + (k-1)q_{i|i} ]$.
+Note that this is the expression for the case where an $i$ individual is picked, so technically it has an $x_i$ prefactor: we can rescale via $q_{j|i} = q_{i|j}x_j/x_i$.
+The ``pair creation'' terms can thus be mashed together: we have
+\begin{equation}
+    x_j \sum_l q_{l|j} q_{i|l} + x_i \sum_l q_{l|i} q_{j|l} = 2 x_j \sum_l q_{l|j} q_{i|l},
+    \label{eq:pair_creation}
+\end{equation}
+using $x_i q_{l|i} q_{j|l} = x_l q_{i|l} q_{j|l} = x_j q_{i|l} q_{l|j}$.
+
+The total rate at which pairs are destroyed thus becomes
+\begin{equation}
+x_j q_{i|j} [ (k-1)q_{j|i} + 1 + (k-1)q_{j|j} ]
++ x_i q_{j|i} [ (k-1)q_{i|j} + 1 + (k-1)q_{i|i} ].
+\end{equation}
+We will want to get all of this in terms of $x_j$.
+The second term becomes $x_j q_{i|j} [ (k-1)q_{i|j} + 1 + (k-1)q_{i|i} ]$.
+So in total, we have
+\begin{equation}
+    \begin{split}
+        & x_j q_{i|j} [ (k-1)q_{j|i} + 1 + (k-1)q_{j|j} ]
+        + x_j q_{i|j}[ (k-1)q_{i|j} + 1 + (k-1)q_{i|i} ]
+        \\
+        & =  x_j q_{i|j} [ 2 + (k-1) (q_{j|i} + q_{i|i}) + (k-1) (q_{j|j} + q_{i|j} )]
+        \\
+        & =  2x_j kq_{i|j}.
+    \end{split}
+    \label{eq:pair_destruction_ij}
+\end{equation}
+We can put equations \ref{eq:pair_creation} and \ref{eq:pair_destruction_ij} together to obtain a simplified version of equation \ref{eq:bd_update}.
+Keep in mind that we will divide out a factor of $2$, as implicitly we've been considering both $ij$ and $ji$ pairs ($x_{ij} = x_{ji}$, but we should avoid double counting).
+There are $Nk/2$ pairs (with $N$ the total number of individuals in the network).
+We thus have
+\begin{equation}
+    \begin{split}
+        \frac{Nk}{2}\Delta x_{ij} & = \frac{1}{2} x_j \Big[2 (k-1) \sum_l \Big( q_{i|l}q_{l|j} \Big) - 2 kq_{i|j} \Big]
+        \\
+        \therefore \frac{\Delta x_{ij}}{x_j} & = \frac{2}{Nk} \Big[(k-1)\sum_l \Big( q_{i|l}q_{l|j} \Big) - kq_{i|j} \Big]
+        \\
+        \therefore \dot{q}_{i|j} = \frac{\dot{x}_{ij}}{x_j} & = \frac{2}{k} \Big[(k-1)\sum_l \Big(  q_{i|l}q_{l|j} \Big) - kq_{i|j} \Big],
+    \end{split}
+    \label{eq:bd_update_ij}
+\end{equation}
+whereupon we've sent the time increment to $0$ but assumed that each individual reproduces, on average, once during each increment (so the $N$ term disappears).
+
+\subsection{Special case: $i = j$}
+
+There is yet another special case to consider: what happens if $j = i$, i.e., we are concerned with $\dot{x}_{ii}$?
+In that case, most of the above analysis holds.
+With probability $x_i$, an $i$ individual is chosen to reproduce.
+Call the other strategy $m$ to avoid notational confusion ($l$ will remain our index variable).
+With probability $q_{l|i}$, an $l$ individual will be chosen for replacement, and $(k-1)\sum_l (q_{l|i}q_{i|l}) + q_{m|i}$ $ii$ pairs are created.
+The extra $q_{m|i}$ term comes from the fact that, if $i$ populates an $m$ individual, that $i$ individual is now part of one extra $ii$ pair beyond what's already counted in the sum.
+The $l = i$ term in that sum corresponds to the case where an $i$ individual is picked, which means $(k-1)q_{i|i}^2$ $i$ pairs are created.
+However, again, those are ``fictitious'' pairs that we had better get rid of: nothing had better happen to $x_{ii}$ in that case.
+
+We need to consider what happens when an $m$ individual is chosen to reproduce (with probability $x_m$).
+No $ii$ pairs can be created.
+However, $ii$ pairs can be destroyed: with probability $q_{i|m}$, an $i$ individual is chosen for replacement, who was in turn part of $(k-1)q_{i|i}$ $ii$ pairs.
+The total change in $ii$ pairs is thus
+\begin{equation}
+    \begin{split}
+        \frac{Nk}{2} \Delta x_{ii} & = x_i (k-1)\sum_l \Big( q_{l|i}q_{i|l} \Big) + x_i q_{m|i} - x_i(k-1)q_{i|i}^2 - x_m (k-1) q_{i|m}q_{i|i}
+        \\
+        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + q_{m|i} - x_i (k-1) (q_{i|i}^2 + q_{m|i}q_{i|i})
+        \\
+        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + q_{m|i} - x_i (k-1)q_{i|i}
+        \\
+        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + (1 - q_{i|i}) - x_i (k-1)q_{i|i}
+        \\
+        & = x_i \Big[ 1 + (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) - kq_{i|i} \Big],
+    \end{split}
+\end{equation}
+using $1 - q_{m|i} = q_{i|i}$.
+Note that there'll be no nagging factor of $2$ to divide out, as we haven't been double counting this time.
+This can be made consistent with equation \ref{eq:bd_update_ij} by simply adding a factor of $\delta_{ij}$, so we recover equation \ref{eq:bd_update}.
+
+\subsection{General case}
+
+If we extend this to more than two strategies, an individual with arbitrary non-$i$, non-$j$ strategy (call it $m$ again) reproduces with probability $x_m$.
+No $ij$ pairs can be created as a result, and equation \ref{eq:pair_creation} does not change (we simply allow $l$ to range over the $m$ strategies as well).
+However, $ij$ pairs can be destroyed, so we may have to amend equation \ref{eq:pair_destruction_ij}.
+$m$ can replace an $i$ individual, which happens with probability $q_{i|m}$.
+That $i$ individual will have been part of $(k-1)q_{j|i}$ $ij$ pairs.
+Likewise, $m$ can replace a $j$ individual with probability $q_{j|m}$, destroying $(k-1)q_{i|j}$ $ij$ pairs.
+
+The total rate at which pairs are destroyed thus becomes
+\begin{equation}
+    x_j q_{i|j} [ (k-1)q_{j|i} + 1 + (k-1)q_{j|j} ]
+    + x_i q_{j|i} [ (k-1)q_{i|j} + 1 + (k-1)q_{i|i} ]
+    + \sum_{m \neq i,j} x_m (k-1)[ q_{i|m}q_{j|i} + q_{j|m}q_{i|j}].
+\end{equation}
+The $x_m$ term requires a little more care.
+Observe that $x_m q_{i|m}q_{j|i} = x_i q_{m|i}q_{j|i} = x_j q_{m|i} q_{i|j}$
+and $x_m q_{j|m} q_{i|j} = x_j q_{m|j} q_{i|j}$.
+So we have
+\begin{equation}
+    \begin{split}
+        & x_j q_{i|j} [ (k-1)q_{j|i} + 1 + (k-1)q_{j|j} ]
+        + x_j q_{i|j}[ (k-1)q_{i|j} + 1 + (k-1)q_{i|i} ]
+        + x_j q_{i|j} \sum_{m \neq i,j}  (k-1)[ q_{m|i} + q_{m|j}]
+        \\
+        & =  x_j q_{i|j} [ 2 + (k-1) (q_{j|i} + q_{i|i} + \sum_{m \neq i,j} q_{m|i}) + (k-1) (q_{j|j} + q_{i|j} + \sum_{m \neq i,j} q_{m|j})]
+        \\
+        & =  2x_j kq_{i|j}.
+    \end{split}
+    \label{eq:pair_destruction}
+\end{equation}
+Finally, the possibility of $i = j$ will work exactly the same as in the two-strategy case, except that we'll effectively sum over the possibility of $i$ replacing any $m$ (non-$i$) strategy.
+This will require that we add a $\sum_{m \neq i} q_{m|i} = 1 - q_{i|i}$ term (the sum is all that changes), so we'll have another $\delta_{ij}$ to account for that.
+Since there are a total of $Nk/2$ pairs, in total we end up with
+\begin{equation}
+    \begin{split}
+        \frac{Nk}{2}\Delta x_{ij} & = x_j \Big[ \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \Big] \nonumber \\
+        \therefore \frac{\Delta x_{ij}}{x_j} & = \frac{2}{Nk} \Big[ \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \Big]
+        \\
+        \therefore \dot{q}_{i|j} = \frac{\dot{x}_{ij}}{x_j} & = \frac{2}{k} \Big[ \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \Big]
+    \end{split}
+\end{equation}
+Observe that nothing changes under different update rules, except that there will be a $k+1$ rather than $k$ term in the ``imitation'' update rule, as an individual can compare itself to itself (there's effectively one extra ``edge'' in the network).
+
+\subsection{Deriving the equilibrium frequencies}
+
+Let's see now if we can use equation \ref{eq:bd_update} to derive the equilibrium frequencies, which \citet{ohtsuki.nowak_2006} claim are given by
+\begin{equation}
+    q_{i|j} = \frac{(k-2)x_i + \delta_{ij}}{k-1}.
+\end{equation}
+Observe that there is a $(k-1)$ divisor and a $(k-2)$ prefactor, which probably implies we are going to have to add and subtract something that equals zero in order to get everything to look right.
+We start with equation \ref{eq:bd_update} and set it equal to zero:
+\begin{equation}
+    \begin{split}
+        \dot{q}_{i|j} = 0 & = \frac{2}{k} \Big[ \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \Big] \nonumber \\
+        \therefore 0 & = \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \nonumber \\
+        \therefore (k-1)q_{i|j} & = \delta_{ij} + (k-1)\Big( \sum_l q_{i|l}q_{l|j} \Big) - q_{i|j} \nonumber
+    \end{split}
+\end{equation}
+whereupon we will need to figure out a way to turn $(k-1)(\sum_l q_{i|l}q_{l|j}) - q_{i|j}$ into $(k-2)x_i$.
+The only ``hint'' we are given is that $q_{i|j}x_j = q_{j|i}x_i$.
+We could expand out $(k-2)x_i = (k-2)\sum_l x_{il} = (k-2)\sum_l q_{i|l} x_l$.
+
+
+\bibliographystyle{plainnat}
+\bibliography{notes_bib}
+\end{document}
