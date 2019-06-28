@@ -1,4 +1,4 @@
-\documentclass[13pt, justified]{tufte-handout}
+\documentclass[14pt, justified]{tufte-book}
 
 \usepackage{amsfonts,latexsym,amsthm,amssymb,amsmath,amscd,euscript}
 %\usepackage{framed}
@@ -6,6 +6,14 @@
 \usepackage{hyperref}
 \usepackage{mathtools}
 %\usepackage{charter}
+%\usepackage{libertine} \usepackage[libertine]{newtxmath}
+%\usepackage{newpxtext, newpxmath}
+%\usepackage{libertine}
+%\usepackage{fourier} \usepackage[euler-digits]{eulervm}
+\usepackage{fourier} \usepackage{newpxmath}
+%\usepackage{kpfonts, mathpazo}
+%\usepackage[utopia]{mathdesign}
+%\usepackage{kpfonts}
 \usepackage{natbib}
 
 \usepackage[dvipsnames]{xcolor}
@@ -130,18 +138,19 @@ The total change in $ii$ pairs is thus
     \begin{split}
         \frac{Nk}{2} \Delta x_{ii} & = x_i (k-1)\sum_l \Big( q_{l|i}q_{i|l} \Big) + x_i q_{m|i} - x_i(k-1)q_{i|i}^2 - x_m (k-1) q_{i|m}q_{i|i}
         \\
-        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + q_{m|i} - x_i (k-1) (q_{i|i}^2 + q_{m|i}q_{i|i})
+        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + x_i q_{m|i} - x_i (k-1) (q_{i|i}^2 + q_{m|i}q_{i|i})
         \\
-        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + q_{m|i} - x_i (k-1)q_{i|i}
+        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + x_i q_{m|i} - x_i (k-1)q_{i|i}
         \\
-        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + (1 - q_{i|i}) - x_i (k-1)q_{i|i}
+        & = x_i (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) + x_i (1 - q_{i|i}) - x_i (k-1)q_{i|i}
         \\
         & = x_i \Big[ 1 + (k-1) \sum_l \Big( q_{l|i}q_{i|l} \Big) - kq_{i|i} \Big],
     \end{split}
+    \label{eq:bd_update_ii}
 \end{equation}
 using $1 - q_{m|i} = q_{i|i}$.
 Note that there'll be no nagging factor of $2$ to divide out, as we haven't been double counting this time.
-This can be made consistent with equation \ref{eq:bd_update_ij} by simply adding a factor of $\delta_{ij}$, so we recover equation \ref{eq:bd_update}.
+This can be made consistent with equation \ref{eq:bd_update_ij} by simply replacing $1$ with $\delta_{ij}$, so we recover equation \ref{eq:bd_update}.
 
 \subsection{General case}
 
@@ -168,21 +177,21 @@ So we have
         + x_j q_{i|j}[ (k-1)q_{i|j} + 1 + (k-1)q_{i|i} ]
         + x_j q_{i|j} \sum_{m \neq i,j}  (k-1)[ q_{m|i} + q_{m|j}]
         \\
-        & =  x_j q_{i|j} [ 2 + (k-1) (q_{j|i} + q_{i|i} + \sum_{m \neq i,j} q_{m|i}) + (k-1) (q_{j|j} + q_{i|j} + \sum_{m \neq i,j} q_{m|j})]
+        = & x_j q_{i|j} [ 2 + (k-1) \overbrace{(q_{j|i} + q_{i|i} + \sum_{m \neq i,j} q_{m|i})}^{\textrm{sums to }1} + (k-1) \underbrace{(q_{j|j} + q_{i|j} + \sum_{m \neq i,j} q_{m|j})}_{\textrm{sums to }1}]
         \\
-        & =  2x_j kq_{i|j}.
+        = & 2x_j kq_{i|j}.
     \end{split}
     \label{eq:pair_destruction}
 \end{equation}
 Finally, the possibility of $i = j$ will work exactly the same as in the two-strategy case, except that we'll effectively sum over the possibility of $i$ replacing any $m$ (non-$i$) strategy.
-This will require that we add a $\sum_{m \neq i} q_{m|i} = 1 - q_{i|i}$ term (the sum is all that changes), so we'll have another $\delta_{ij}$ to account for that.
+This will require that we add a $\sum_{m \neq i} q_{m|i} = 1 - q_{i|i}$ term (the sum is all that changes from equation \ref{eq:bd_update_ii}), so we'll have another $\delta_{ij}$ to account for that.
 Since there are a total of $Nk/2$ pairs, in total we end up with
 \begin{equation}
     \begin{split}
-        \frac{Nk}{2}\Delta x_{ij} & = x_j \Big[ \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \Big] \nonumber \\
-        \therefore \frac{\Delta x_{ij}}{x_j} & = \frac{2}{Nk} \Big[ \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \Big]
+        \frac{Nk}{2}\Delta x_{ij} & = x_j \Big[ \delta_{ij} + (k-1)\sum_l \Big( q_{i|l}q_{l|j} \Big) - kq_{i|j} \Big] \nonumber \\
+        \therefore \frac{\Delta x_{ij}}{x_j} & = \frac{2}{Nk} \Big[ \delta_{ij} + (k-1)\sum_l \Big( q_{i|l}q_{l|j} \Big) - kq_{i|j} \Big]
         \\
-        \therefore \dot{q}_{i|j} = \frac{\dot{x}_{ij}}{x_j} & = \frac{2}{k} \Big[ \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \Big]
+        \therefore \dot{q}_{i|j} = \frac{\dot{x}_{ij}}{x_j} & = \frac{2}{k} \Big[ \delta_{ij} + (k-1)\sum_l \Big( q_{i|l}q_{l|j} \Big) - kq_{i|j} \Big]
     \end{split}
 \end{equation}
 Observe that nothing changes under different update rules, except that there will be a $k+1$ rather than $k$ term in the ``imitation'' update rule, as an individual can compare itself to itself (there's effectively one extra ``edge'' in the network).
@@ -197,15 +206,110 @@ Observe that there is a $(k-1)$ divisor and a $(k-2)$ prefactor, which probably 
 We start with equation \ref{eq:bd_update} and set it equal to zero:
 \begin{equation}
     \begin{split}
-        \dot{q}_{i|j} = 0 & = \frac{2}{k} \Big[ \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \Big] \nonumber \\
-        \therefore 0 & = \delta_{ij} + (k-1)\sum_l q_{i|l}q_{l|j} - kq_{i|j} \nonumber \\
-        \therefore (k-1)q_{i|j} & = \delta_{ij} + (k-1)\Big( \sum_l q_{i|l}q_{l|j} \Big) - q_{i|j} \nonumber
+        \dot{q}_{i|j} = 0 & = \frac{2}{k} \Big[ \delta_{ij} + (k-1)\sum_l \Big( q_{i|l}q_{l|j} \Big) - kq_{i|j} \Big]
+        \\
+        \therefore 0 & = \delta_{ij} + (k-1)\sum_l \Big( q_{i|l}q_{l|j} \Big) - kq_{i|j}
+        \\
+        \therefore (k-1)q_{i|j} & = \delta_{ij} + (k-1)\Big( \sum_l q_{i|l}q_{l|j} \Big) - q_{i|j}
+        \\
+        \therefore q_{i|j} & = \frac{\delta_{ij} + (k-1)\Big( \sum_l q_{i|l}q_{l|j} \Big) - q_{i|j}}{k-1}
     \end{split}
 \end{equation}
 whereupon we will need to figure out a way to turn $(k-1)(\sum_l q_{i|l}q_{l|j}) - q_{i|j}$ into $(k-2)x_i$.
 The only ``hint'' we are given is that $q_{i|j}x_j = q_{j|i}x_i$.
 We could expand out $(k-2)x_i = (k-2)\sum_l x_{il} = (k-2)\sum_l q_{i|l} x_l$.
 
+\subsection{The replicator equation with birth-death updating}
+
+We assume now that the conditional frequencies $q_{i|j}$ are in equilibrium and update quickly in response to changes in the global frequencies $x_i$.
+In the birth-death updating scheme, an individual is chosen to reproduce with a probability proportional to its fitness, then replaces a random neighbor.
+
+How does $x_i$ change?
+It can increase provided that an $i$ individual is chosen to reproduce \emph{and} it replaces a non-$i$ neighbor.
+The first event occurs with probability
+\begin{equation}
+    \Big[ x_i \cdot \overbrace{\Big( \frac{k!}{k_1! k_2! \cdots k_n!} q_{1|i}^{k_1} \cdots q_{n|i}^{k^n} \Big)}^{\textrm{configuration probability}} \cdot \underbrace{W_{(i; k_1, \ldots ,k_n)}}_{\textrm{fitness}} \Big] \Big/ \bar{W},
+\end{equation}
+in which $W_{(i; k_1, \ldots ,k_n)}$ is the fitness of an $i$ individual with $k_1, \ldots , k_n$ neighbors of each type: $W_{(i; k_1, \ldots ,k_n)} = 1 - w + w \sum_l k_l a_{il}$.
+$\bar{W}$ is the mean fitness.
+A non-$i$ neighbor is then replaced with probability $1 - k_i/k$.
+In order for $x_i$ to decrease, a non-$i$ neighbor must be picked to reproduce, which happens with probability
+\begin{equation}
+    \Big[ x_j \cdot \overbrace{\Big( \frac{k!}{k_1! k_2! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k^n} \Big)}^{\textrm{configuration probability}} \cdot \underbrace{W_{(j; k_1, \ldots ,k_n)}}_{\textrm{fitness}} \Big] \Big/ \bar{W},
+\end{equation}
+and then it must replace an $i$ individual, which happens with probability $k_i/k$.
+By subtracting these probabilities, we obtain the expected change in the frequency of $x_i$ in one time step, $\mathbf{E}[\Delta x_i]$.
+Dividing by the time step $\Delta t$ yields the time derivative
+\begin{equation}
+    \begin{split}
+        \dot{x}_i = \frac{\mathbf{E}[\Delta x_i]}{\Delta t} & = \sum_{k_1 + \cdots + k_n = k}  \Big[ x_i \cdot \Big( \frac{k!}{k_1! k_2! \cdots k_n!} q_{1|i}^{k_1} \cdots q_{n|i}^{k_n} \Big) \cdot W_{(i; k_1, \ldots ,k_n)} \Big] \cdot \Big(1 - \frac{k_i}{k} \Big)\Big/ \bar{W}
+        \\
+        & - \sum_{k_1 + \cdots + k_n = k} \Big[ x_j \cdot \Big( \frac{k!}{k_1! k_2! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k_n} \Big) \cdot W_{(j; k_1, \ldots ,k_n)} \Big] \cdot \frac{k_i}{k} \Big/ \bar{W}
+        \\
+        & \approx w \frac{(k-2)^2}{k-1} \cdot x_i (f_i + g_i - \phi),
+    \end{split}
+    \label{eq:bd_replicator}
+\end{equation}
+with
+\begin{equation}
+    \begin{split}
+        f_i & = \sum_j x_j a_{ij},
+        \\
+        \phi & = \sum_i f_i = \sum_{i,j} x_i x_j a_{ij},
+        \\
+        g_i & = \sum_j x_j b_{ij},
+        \\
+        b_{ij} & = \frac{a_{ii} + a_{ij} - a_{ji} - a_{jj}}{k-2}.
+    \end{split}
+    \label{eq:bd_coeffs}
+\end{equation}
+This is a mouthful.
+Let's try to see how all this works.
+As before, we'll start with the two strategy case.
+Then equation \ref{eq:bd_replicator} simplifies to
+\begin{equation}
+    \begin{split}
+        \dot{x}_1 = \frac{\mathbf{E}[\Delta x_1]}{\Delta t} & = \sum_{k_1 + k_2 = k}  \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} q_{1|1}^{k_1} q_{2|1}^{k_2} \Big) \cdot W_{(1; k_1, k_2)} \Big] \cdot \Big(1 - \frac{k_1}{k} \Big)\Big/ \bar{W}
+        \\
+        & - \sum_{k_1 + k_2 = k} \Big[ x_2 \cdot \Big( \frac{k!}{k_1! k_2!} q_{1|2}^{k_1} q_{2|2}^{k_2} \Big) \cdot W_{(2; k_1, k_2)} \Big] \cdot \frac{k_1}{k} \Big/ \bar{W},
+    \end{split}
+    \label{eq:bd_replicator_ij}
+\end{equation}
+with
+\begin{equation}
+    \begin{split}
+        W_{(1; k_1, k_2)} & = 1 - w + w(k_1 a_{11} + k_2 a_{12}),
+        \\
+        W_{(2; k_1, k_2)} & = 1 - w + w(k_1 a_{21} + k_2 a_{22}),
+        \\
+        q_{1|1} & = \frac{(k-2)x_1 + 1}{k-1},
+        \\
+        q_{1|2} & = \frac{(k-2)x_1}{k-1},
+        \\
+        q_{2|1} & = \frac{(k-2)x_2}{k-1},
+        \\
+        q_{2|2} & = \frac{(k-2)x_2 + 1}{k-1}.
+    \end{split}
+\end{equation}
+We might as well see if we can combine all of equation \ref{eq:bd_replicator_ij} into one sum.
+%\begin{equation}
+\begin{alignat*}{2}
+    \dot{x}_1 = & \frac{1}{\bar{W}} \sum_{k_1 + k_2 = k} & \Bigg\{ & \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} q_{1|1}^{k_1} q_{2|1}^{k_2} \Big) \cdot W_{(1; k_1, k_2)} \Big] \cdot \Big(1 - \frac{k_1}{k} \Big)
+    \\
+    && - &\Big[ x_2 \cdot \Big( \frac{k!}{k_1! k_2!} q_{1|2}^{k_1} q_{2|2}^{k_2} \Big) \cdot W_{(2; k_1, k_2)} \Big] \cdot \frac{k_1}{k} \Bigg\}
+    \\
+    = & \frac{1}{\bar{W}(k-1)^k} \sum_{k_1 + k_2 = k} & \Bigg\{ & \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} [(k-2)x_1+1]^{k_1}[(k-2)x_1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{11} + k_2 a_{12}]) \Big] \cdot \Big(1 - \frac{k_1}{k} \Big)
+    \\
+    && - & \Big[ x_2 \cdot \Big( \frac{k!}{k_1! k_2!} [(k-2)x_2]^{k_1}[(k-2)x_2 + 1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{21} + k_2 a_{22}]) \Big] \cdot \frac{k_1}{k} \Bigg\}
+    \\
+    = & \frac{1}{\bar{W}(k-1)^k} \sum_{k_1 + k_2 = k} & \Bigg\{ & \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} [(k-2)x_1+1]^{k_1}[(k-2)x_1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{11} + k_2 a_{12}]) \Big]
+    \\
+    && - & \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} [(k-2)x_1+1]^{k_1}[(k-2)x_1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{11} + k_2 a_{12}]) \Big] \cdot \frac{k_1}{k}
+    \\
+    && - & \Big[ x_2 \cdot \Big( \frac{k!}{k_1! k_2!} [(k-2)x_2]^{k_1}[(k-2)x_2 + 1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{21} + k_2 a_{22}]) \Big] \cdot \frac{k_1}{k} \Bigg\}
+    \label{eq:bd_replicator_12}
+\end{alignat*}
+%\end{equation}
 
 \bibliographystyle{plainnat}
 \bibliography{notes_bib}
