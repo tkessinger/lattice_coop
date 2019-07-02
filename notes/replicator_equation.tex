@@ -322,7 +322,7 @@ We will benefit from first figuring out what $\bar{W}$ looks like:
 \end{equation}
 where
 \begin{equation}
-    \theta \equiv \frac{k(k-2)}{k-1} \sum_{m,l} x_m x_l a_{ml} + \frac{k}{k-1} \sum_m x_m a_mm.
+    \theta \equiv \frac{k(k-2)}{k-1} \sum_{m,l} x_m x_l a_{ml} + \frac{k}{k-1} \sum_m x_m a_{mm}.
 \end{equation}
 Thus
 \begin{equation}
@@ -332,7 +332,20 @@ Thus
         & \approx 1 + w \Big( \sum_l k_l a_{il} - \theta \Big).
     \end{split}
 \end{equation}
-(The last approximation is just the first term of a Taylor expansion in $w$, given $w \ll 1$.)
+The last approximation is just the first term of a Taylor expansion in $w$, given $w \ll 1$: we have
+\begin{equation}
+    \begin{split}
+        f(w) & = \frac{1 - w + wx}{1 - w + wy}
+        \\
+        & \approx f(0) + w f^\prime(0) + O(w^2)
+        \\
+        & = 1 + w \frac{(x - 1)(1 - w + wy) - (1 - w + wx)(y - 1)}{(1 - w + wy)^2} + O(w^2)
+        \\
+        & = 1 + w \frac{x - y}{(1 - w + wy)^2} + O(w^2)
+        \\
+        & \approx 1 + w(x-y).
+    \end{split}
+\end{equation}
 
 For the rest of this, I had to cheat a little bit: I asked Ohtsuki, who sent me a writeup that proved to be very useful.
 Evidently I am not the first person to be confused by his paper, including several equations that (apparently) took multiple pages of algebra to derive but are, for space reasons, presented without proof.
@@ -403,7 +416,7 @@ Putting equations \ref{eq:bd_sum_1} and \ref{eq:bd_sum_2} together yields
     \begin{split}
         & w \frac{(k-2)^2}{k-1} x_i \frac{a_{ii} + (k-1) a_{i \bullet} - a_{\bullet i} - (k-2) a_{\bullet \bullet} - a_{\bullet}}{k-2}
         \\
-        = & w \frac{(k-2)^2}{k-1} x_i \Big( a_{i \bullet} + \frac{a_{ii} + a_{i \bullet} - a_{\bullet i} - a_{\bullet}}{k-2} - a_{\bullet \bullet}{k-2} \Big)
+        = & w \frac{(k-2)^2}{k-1} x_i \Big( a_{i \bullet} + \frac{a_{ii} + a_{i \bullet} - a_{\bullet i} - a_{\bullet}}{k-2} - a_{\bullet \bullet} \Big)
         \\
         = & w \frac{(k-2)^2}{k-1} x_i (f_i + g_i - \phi).
     \end{split}
@@ -411,6 +424,112 @@ Putting equations \ref{eq:bd_sum_1} and \ref{eq:bd_sum_2} together yields
 I will still need to go back through this and work through each line of algebra, though some of it is obvious.
 Replicating it line-by-line in the death-birth case might be instructive.
 
+\subsection{The replicator equation with death-birth updating}
+
+In the death-birth case, a random individual is chosen to die, and then its neighbors compete to replace it with a probability proportional to their fitness.
+The equilibium conditional frequencies are still given by equation \ref{eq:equilibrium_freqs}.
+In order for the frequency of individual $i$ to increase, we require that a non-$i$ (call it $j$) individual be chosen to die and an $i$ individual replace it.
+The first event occurs with probability
+\begin{equation}
+    x_j \sum_{k_1 + \cdots + k_n = k}\frac{k!}{k_1! k_2! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k^n},
+\end{equation}
+and the second occurs with probability
+\begin{equation}
+    \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}},
+\end{equation}
+where
+\begin{equation}
+    W_{i|j} = 1 - w + w \cdot \Big( a_{ij} + \sum_l (k-1) q_{l|i} a_{il} \Big)
+\end{equation}
+is the fitness of an $i$ individual, one of whose neighbors is $j$.
+Likewise, the frequency of $i$ decreases if an $i$ individual is chosen to die and a $j$ (non-$i$) individual is chosen to replace it.
+The first event occurs with probability
+\begin{equation}
+    x_i \sum_{k_1 + \cdots + k_n = k}\frac{k!}{k_1! k_2! \cdots k_n!} q_{1|i}^{k_1} \cdots q_{n|i}^{k^n},
+\end{equation}
+and the second occurs with probability
+\begin{equation}
+    1 - \frac{k_i W_{i|i}}{\sum_l k_l W_{l|i}}.
+\end{equation}
+So the overall rate of change of $x_i$ is
+\begin{equation}
+    \begin{split}
+        \dot{x}_i & = \sum_{k_1 + \cdots + k_n = k, j \neq i } x_j \cdot \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|k}^{k_n} \Big) \cdot \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}
+        \\
+        & - \sum_{k_1 + \cdots + k_n = k, j \neq i } x_j \cdot \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|k}^{k_n} \Big) \cdot \Big( 1- \frac{k_i W_{i|i}}{\sum_l k_l W_{l|j}} \Big)
+        \\
+        & \approx w \frac{(k+1)(k-2)^2}{k (k-1)} \cdot x_i (f_i + g_i - \phi),
+    \end{split}
+    \label{eq:db_replicator}
+\end{equation}
+with
+\begin{equation}
+    \begin{split}
+        f_i & = \sum_j x_j a_{ij},
+        \\
+        \phi & = \sum_i f_i = \sum_{i,j} x_i x_j a_{ij},
+        \\
+        g_i & = \sum_j x_j b_{ij},
+        \\
+        b_{ij} & = \frac{(k+1)a_{ii} + a_{ij} - a_{ji} - (k+1)a_{jj}}{(k-1)(k-2)}.
+    \end{split}
+    \label{eq:db_coeffs}
+\end{equation}
+Only the $b_{ij}$ differ from equation \ref{eq:bd_coeffs} above, as well as the prefactor.
+Let's see if we can work our way back to this.
+First, we will probably want to know what $\sum_l k_l W_{l|j}$ looks like:
+\begin{equation}
+    \begin{split}
+        \sum_l k_l W_{l|j} & = \sum_l k_l \Big[ 1 - w + w \cdot \Big( a_{lj} + \sum_m (k-1) q_{m|l} a_{ml} \Big) \Big]
+        \\
+        & = (1 - w)\sum_l k_l + w \sum_l k_l \Big( a_{lj} + \sum_m (k-1) q_{m|l} a_{ml} \Big)
+        \\
+        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + \sum_m (k-1) \frac{(k-2) x_m + \delta_{ml}}{k-1} a_{ml} \Big)
+        \\
+        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + \sum_m [(k-2) x_m + \delta_{ml}] a_{ml} \Big)
+        \\
+        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml}  \Big).
+    \end{split}
+\end{equation}
+The ratio $\frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}$ is
+\begin{equation}
+    \begin{split}
+        \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}} & = \frac{(1 - w)k_i + w k_i \Big( a_{ij} + \sum_l (k-1) q_{l|i} a_{il} \Big) }{(1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big) }
+        \\
+        & = \frac{(1 - w)k_i + w k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) }{(1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big) }.
+        \\
+        \approx & \frac{k_i}{k} + w (bc - ad) + O(w^2),
+    \end{split}
+\end{equation}
+using a Taylor approximation trick similar to the above:
+\begin{equation}
+    \begin{split}
+        f(w) & = \frac{(1 - w)a + wb}{(1 - w)c + wd}
+        \\
+        & \approx f(0) + w f^\prime(0) + O(w^2)
+        \\
+        & = \frac{a}{c} + w \frac{ad - bc}{[(1-w)c + wd]^2} + O(w^2)
+        \\
+        & \approx \frac{a}{c} + w(ad - bc),
+    \end{split}
+\end{equation}
+with $a = k_i$, $b = k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) $, $c = k$, $d = \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big)$.
+
+We can now try to expand out the terms of equation \ref{eq:db_replicator}.
+The first line becomes
+\begin{equation}
+    \begin{split}
+        & \sum_{k_1 + \cdots + k_n = k, j \neq i } x_j \cdot \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|k}^{k_n} \Big) \cdot \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}
+        \\
+        = & \sum_{k_1 + \cdots + k_n = k, j \neq i } x_j \cdot \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1}
+        \cdots q_{n|k}^{k_n} \Big)
+        \\
+        & \cdot \Big\{ \frac{k_i}{k} + w \Big[ k_i \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big) - k k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) \Big] \Big\}
+        \\
+        & = x_j q_j + x_j k w q_j \sum_l
+    \end{split}
+    \label{eq:db_sum_1}
+\end{equation}
 %
 % As before, we'll start with the two strategy case.
 % Then equation \ref{eq:bd_replicator} simplifies to
