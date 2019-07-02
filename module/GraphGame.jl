@@ -12,7 +12,7 @@ module GraphGame
 
     export GameGraph
     export evolve!, initialize_fitnesses!
-    export get_frequencies, get_frequency, get_pair_frequencies
+    export get_frequencies, get_frequency, get_pair_frequencies, get_conditional_frequencies
 
     mutable struct GameGraph
         # by design this is a random regular graph
@@ -23,7 +23,8 @@ module GraphGame
         game::Array{Float64, 2} # an associated game to be played on the graph
         graph::SimpleGraph # the graph itself
 
-        # the next two are the only mutable attributes
+        # the next three are the only mutable attributes
+        generation::Int64 # current generation
         strategies::Array{Int64} # an array of individuals' strategies
         fitnesses::Array{Float64} # individuals' fitnesses depending on,
             # e.g., neighbor payoffs
@@ -35,9 +36,8 @@ module GraphGame
             game::Array{Float64, 2},
             graph::SimpleGraph
             )
-            num_strategies = size(game)[1]
             return new(n, k, w, game, graph,
-                ones(Int64, n), zeros(n))
+                0, ones(Int64, n), zeros(n))
         end
     end
 
@@ -122,40 +122,61 @@ module GraphGame
                 pair_freqs[gg.strategies[indv], gg.strategies[neighbor]] += 1.0
             end
         end
+        # pair frequencies should be symmetric: x_{ij} = x_{ji}
         pair_freqs += transpose(pair_freqs)
+        # there are nk/2 total edges
         pair_freqs /= (2*gg.n*gg.k)
         return pair_freqs
     end
 
+    function get_conditional_frequencies(
+        gg::GameGraph,
+        return_all::Bool=false
+        )
+        # returns the conditional frequencies q_{i|j} = x_{ij}/x_j
+        conditional_freqs = zeros(size(gg.game))
+        pair_freqs = get_pair_frequencies(gg)
+        freqs = get_frequencies(gg)
+        conditional_freqs = pair_freqs./transpose(freqs)
+        if return_all
+            return (freqs, pair_freqs, conditional_freqs)
+        else
+            return conditional_freqs
+        end
+    end
+
     function evolve!(
         gg::GameGraph,
+        num_gens::Int64=1,
         update_rule::String="birth_death"
         )
         # depending on the update rule and their fitnesses,
         # replaces an individual with a neighbor
 
-        if update_rule == "birth_death"
-            # an individual is chosen to reproduce proportional to fitness
-            # they replace a random neighbor
-            indv = sample(1:gg.n, Weights(gg.fitnesses))
-            neighbor_to_replace = rand(neighbors(gg.graph, indv))
-            update_indv!(gg, indv, neighbor_to_replace)
-        elseif update_rule == "death_birth"
-            # an individual is chosen to die at random
-            # their neighbors compete to replace them, proportional to fitness
-            indv = rand(1:gg.n)
-            neighbor_fitnesses = gg.fitnesses[neighbors[gg.graph, indv]]
-            invading_neighbor = sample(neighbors[gg.graph, indv], Weights(neighbor_fitnesses))
-            update_indv!(gg, invading_neighbor, indv)
-        elseif update_rule == "imitation"
-            # an individual compares its fitness against its neighbors and itself
-            # then adopts their strategy, proportional to fitness
-            indv = rand(1:gg.n)
-            neighbor_fitnesses = gg.fitnesses[vcat(indv, [neighbors(gg.graph, indv)])]
-            invading_neighbor = sample(vcat(indv, neighbors[gg.graph, indv]), Weights(neighbor_fitnesses))
-            update_indv!(gg, invading_neighbor, indv)
+        for i in 1:num_gens
+            if update_rule == "birth_death" || update_rule == "bd"
+                # an individual is chosen to reproduce proportional to fitness
+                # they replace a random neighbor
+                indv = sample(1:gg.n, Weights(gg.fitnesses))
+                neighbor_to_replace = rand(neighbors(gg.graph, indv))
+                update_indv!(gg, indv, neighbor_to_replace)
+            elseif update_rule == "death_birth" || update_rule == "db"
+                # an individual is chosen to die at random
+                # their neighbors compete to replace them, proportional to fitness
+                indv = rand(1:gg.n)
+                neighbor_fitnesses = gg.fitnesses[neighbors(gg.graph, indv)]
+                invading_neighbor = sample(neighbors(gg.graph, indv), Weights(neighbor_fitnesses))
+                update_indv!(gg, invading_neighbor, indv)
+            elseif update_rule == "imitation" || update_rule == "im"
+                # an individual compares its fitness against its neighbors and itself
+                # then adopts their strategy, proportional to fitness
+                indv = rand(1:gg.n)
+                neighbor_fitnesses = gg.fitnesses[vcat(indv, neighbors(gg.graph, indv))]
+                invading_neighbor = sample(vcat(indv, neighbors(gg.graph, indv)), Weights(neighbor_fitnesses))
+                update_indv!(gg, invading_neighbor, indv)
+            end
+        gg.generation += 1
         end
     end
-
 
 end
