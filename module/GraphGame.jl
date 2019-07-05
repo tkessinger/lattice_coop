@@ -159,21 +159,28 @@ module GraphGame
                 # they replace a random neighbor
                 indv = sample(1:gg.n, Weights(gg.fitnesses))
                 neighbor_to_replace = rand(neighbors(gg.graph, indv))
-                update_indv!(gg, indv, neighbor_to_replace)
+                # this if block is added in case there's no need to update
+                if gg.strategies[indv] != gg.strategies[neighbor_to_replace]
+                    update_indv!(gg, indv, neighbor_to_replace)
+                end
             elseif update_rule == "death_birth" || update_rule == "db"
                 # an individual is chosen to die at random
                 # their neighbors compete to replace them, proportional to fitness
                 indv = rand(1:gg.n)
                 neighbor_fitnesses = gg.fitnesses[neighbors(gg.graph, indv)]
                 invading_neighbor = sample(neighbors(gg.graph, indv), Weights(neighbor_fitnesses))
-                update_indv!(gg, invading_neighbor, indv)
+                if gg.strategies[invading_neighbor] != gg.strategies[indv]
+                    update_indv!(gg, invading_neighbor, indv)
+                end
             elseif update_rule == "imitation" || update_rule == "im"
                 # an individual compares its fitness against its neighbors and itself
                 # then adopts their strategy, proportional to fitness
                 indv = rand(1:gg.n)
                 neighbor_fitnesses = gg.fitnesses[vcat(indv, neighbors(gg.graph, indv))]
                 invading_neighbor = sample(vcat(indv, neighbors(gg.graph, indv)), Weights(neighbor_fitnesses))
-                update_indv!(gg, invading_neighbor, indv)
+                if gg.strategies[invading_neighbor] != gg.strategies[indv]
+                    update_indv!(gg, invading_neighbor, indv)
+                end
             end
         gg.generation += 1
         end

@@ -73,7 +73,7 @@ end
 function solve_ODEs(
     k::Union{Int64, Float64},
     w::Union{Int64, Float64},
-    a::Array{Union{Int64, Float64}, 2},
+    a::Array{Float64, 2},
     update_rule::String,
     max_time::Union{Int64, Float64},
     make_plot::Bool = false
@@ -85,7 +85,7 @@ function solve_ODEs(
     freqs_0 = fill(1.0/num_strats, num_strats)
     tspan = (0.0, max_time)
     # solve the ODE
-    params = [k, w, a, "bd"]
+    params = [k, w, a, update_rule]
     prob = ODEProblem(dot_x_i, freqs_0, tspan, params)
     sol = solve(prob)
     if make_plot
@@ -114,7 +114,7 @@ w = 0.1
 R, S, T, P = 5, 0, 8, 1
 a = Float64[R S ; T P]
 update_rule = "db"
-max_time = 10000.0
+max_time = 100.0
 
 #w_range = Float64.(10 .^(range(-3,stop=0,length=10)))
 #for (wi, w) in enumerate(w_range)

@@ -19,21 +19,21 @@ S = 0
 T = 8
 P = 1
 
-n = 5000
-k = 10
-w = 0.01
+n = 10000
+k = 3
+w = 0.1
 
 game = Float64[R S ; T P]
 graph = random_regular_graph(n, k)
 
-update_type = "bd"
+update_type = "db"
 
 gg = GameGraph(n, k, w, game, graph)
 indvs_to_flip = randperm(n)[1:n÷2]
 gg.strategies[indvs_to_flip] = ones(Int64, n÷2)*2
 initialize_fitnesses!(gg)
 
-num_gens = 1000
+num_gens = 10000
 
 freq_trajectory = Array{Float64, 1}[]
 pair_freq_trajectory = Array{Float64, 1}[]
@@ -52,31 +52,48 @@ freq_trajectory = hcat(freq_trajectory...)
 pair_freq_trajectory = hcat(pair_freq_trajectory...)
 cond_freq_trajectory = hcat(cond_freq_trajectory...)
 
-fig, axs = plt.subplots(1,3, figsize = (15, 5), sharey="all")
+rule_labels = Dict{String, String}(
+    "bd" => "birth-death",
+    "birth_death" => "birth-death",
+    "db" => "death-birth",
+    "death_birth" => "death-birth",
+    "im" => "imitation",
+    "imitation" => "imitation"
+    )
+
+color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red",
+    "tab:purple", "tab:gray", "tab:pink"]
+
+
+fig, axs = plt.subplots(1,3, figsize = (15,5), sharey="all")
 
 tmp_ax = axs[1]
-tmp_ax.plot(freq_trajectory[1,:], label="cooperator")
-tmp_ax.plot(freq_trajectory[2,:], label="defector")
+tmp_ax.plot(freq_trajectory[1,:], label="cooperator", c=color_list[1])
+tmp_ax.plot(freq_trajectory[2,:], label="defector",  c=color_list[4])
 tmp_ax.set_xlabel("time")
 tmp_ax.set_ylabel("frequency")
 tmp_ax.set_ylim([0,1])
 tmp_ax.legend(loc=2)
 
 tmp_ax = axs[2]
-tmp_ax.plot(pair_freq_trajectory[1,:], label=L"\rho_{cc}")
-tmp_ax.plot(pair_freq_trajectory[2,:], label=L"\rho_{cd}")
-tmp_ax.plot(pair_freq_trajectory[4,:], label=L"\rho_{dd}")
+tmp_ax.plot(pair_freq_trajectory[1,:], label=L"\rho_{cc}", c=color_list[1])
+tmp_ax.plot(pair_freq_trajectory[2,:], label=L"\rho_{cd}", c=color_list[2])
+tmp_ax.plot(pair_freq_trajectory[4,:], label=L"\rho_{dd}", c=color_list[4])
 tmp_ax.set_xlabel("time")
+#tmp_ax.set_ylabel("frequency")
+#tmp_ax.set_ylim([0,1])
 tmp_ax.legend(loc=2)
 
 tmp_ax = axs[3]
-tmp_ax.plot(cond_freq_trajectory[1,:], label=L"q_{c|c}")
-tmp_ax.plot(cond_freq_trajectory[2,:], label=L"q_{d|c}")
-tmp_ax.plot(cond_freq_trajectory[3,:], label=L"q_{c|d}")
-tmp_ax.plot(cond_freq_trajectory[4,:], label=L"q_{d|d}")
+tmp_ax.plot(cond_freq_trajectory[1,:], label=L"q_{c|c}", c=color_list[1])
+tmp_ax.plot(cond_freq_trajectory[2,:], label=L"q_{d|c}", c=color_list[2])
+tmp_ax.plot(cond_freq_trajectory[3,:], label=L"q_{c|d}", c=color_list[3])
+tmp_ax.plot(cond_freq_trajectory[4,:], label=L"q_{d|d}", c=color_list[4])
 tmp_ax.set_xlabel("time")
+#tmp_ax.set_ylabel("frequency")
+#tmp_ax.set_ylim([0,1])
 tmp_ax.legend(loc=2)
-fig.suptitle("w = $w, k = $k, n = $n")
+fig.suptitle("w = $w, k = $k, n = $n, rule = $(rule_labels[update_type])")
 fig.tight_layout()
 fig.subplots_adjust(top=0.93)
 display(fig)
