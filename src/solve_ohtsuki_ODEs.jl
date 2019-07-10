@@ -82,7 +82,8 @@ function solve_ODEs(
     num_strats = size(a)[1]
 
     # initial frequencies
-    freqs_0 = fill(1.0/num_strats, num_strats)
+    #freqs_0 = fill(1.0/num_strats, num_strats)
+    freqs_0 = [0.1, 0.9]
     tspan = (0.0, max_time)
     # solve the ODE
     params = [k, w, a, update_rule]
@@ -113,7 +114,7 @@ k = 3
 w = 0.1
 R, S, T, P = 5, 0, 8, 1
 a = Float64[R S ; T P]
-update_rule = "db"
+update_rule = "bd"
 max_time = 100.0
 
 #w_range = Float64.(10 .^(range(-3,stop=0,length=10)))

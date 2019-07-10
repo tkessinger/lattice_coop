@@ -1,18 +1,18 @@
-\documentclass[14pt, justified]{tufte-handout}
+\documentclass[14pt, a4paper, justified]{article}
 
 \usepackage{amsfonts,latexsym,amsthm,amssymb,amsmath,amscd,euscript}
 %\usepackage{framed}
-%\usepackage{fullpage}
+\usepackage{fullpage}
 \usepackage{hyperref}
 \usepackage{mathtools}
 %\usepackage{charter}
 %\usepackage{libertine} \usepackage[libertine]{newtxmath}
-\usepackage{newpxtext, newpxmath}
+%\usepackage{newpxtext, newpxmath}
 %\usepackage{libertine}
 %\usepackage{fourier} \usepackage[euler-digits]{eulervm}
 %\usepackage{fourier} \usepackage{newpxmath}
 %\usepackage{kpfonts, mathpazo}
-%\usepackage[utopia]{mathdesign}
+\usepackage[utopia]{mathdesign}
 %\usepackage{utopia} \usepackage{newpxmath}
 %\usepackage{kpfonts}
 %\usepackage{newpxtext} \usepackage[euler-digits]{eulervm}
@@ -271,7 +271,7 @@ Dividing by the time step $\Delta t$ yields the time derivative
     \begin{split}
         \dot{x}_i = \frac{\mathbf{E}[\Delta x_i]}{\Delta t} & = \sum_{k_1 + \cdots + k_n = k}  \Big[ x_i \cdot \Big( \frac{k!}{k_1! k_2! \cdots k_n!} q_{1|i}^{k_1} \cdots q_{n|i}^{k_n} \Big) \cdot W_{(i; k_1, \ldots ,k_n)} \Big] \cdot \Big(1 - \frac{k_i}{k} \Big)\Big/ \bar{W}
         \\
-        & - \sum_{k_1 + \cdots + k_n = k} \Big[ x_j \cdot \Big( \frac{k!}{k_1! k_2! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k_n} \Big) \cdot W_{(j; k_1, \ldots ,k_n)} \Big] \cdot \frac{k_i}{k} \Big/ \bar{W}
+        - \sum_{j \neq i} & \sum_{k_1 + \cdots + k_n = k} \Big[ x_j \cdot \Big( \frac{k!}{k_1! k_2! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k_n} \Big) \cdot W_{(j; k_1, \ldots ,k_n)} \Big] \cdot \frac{k_i}{k} \Big/ \bar{W}
         \\
         & \approx w \frac{(k-2)^2}{k-1} \cdot x_i (f_i + g_i - \phi),
     \end{split}
@@ -345,13 +345,14 @@ The last approximation is just the first term of a Taylor expansion in $w$, give
         \\
         & \approx 1 + w(x-y).
     \end{split}
+    \label{eq:taylor_trick}
 \end{equation}
 
 For the rest of this, I had to cheat a little bit: I asked Ohtsuki, who sent me a writeup that proved to be very useful.
 Evidently I am not the first person to be confused by his paper, including several equations that (apparently) took multiple pages of algebra to derive but are, for space reasons, presented without proof.
 
 We can now look term by term at equation \ref{eq:bd_replicator}.
-The first term in the sum (first line) becomes
+Pulling out the $-k_i / k$ term in the first sum and sticking it inside the second $j \neq i$ sum yields a simpler set of sums:
 \begin{equation}
     \begin{split}
         x_i & \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \ldots k_n!} q_{1|i}^{k_1} \ldots q_{n|i}^{k_n} \Big) \cdot \frac{W_{(i; k_1, \ldots ,k_n)}}{\bar{W}}
@@ -411,17 +412,17 @@ The second line of equation \ref{eq:bd_sum} becomes
     \end{split}
     \label{eq:bd_sum_2}
 \end{equation}
-Putting equations \ref{eq:bd_sum_1} and \ref{eq:bd_sum_2} together yields
+Subtracting equation \ref{eq:bd_sum_2} from equation \ref{eq:bd_sum_1} yields
 \begin{equation}
     \begin{split}
         & w \frac{(k-2)^2}{k-1} x_i \frac{a_{ii} + (k-1) a_{i \bullet} - a_{\bullet i} - (k-2) a_{\bullet \bullet} - a_{\bullet}}{k-2}
         \\
         = & w \frac{(k-2)^2}{k-1} x_i \Big( a_{i \bullet} + \frac{a_{ii} + a_{i \bullet} - a_{\bullet i} - a_{\bullet}}{k-2} - a_{\bullet \bullet} \Big)
         \\
-        = & w \frac{(k-2)^2}{k-1} x_i (f_i + g_i - \phi).
+        = & w \frac{(k-2)^2}{k-1} x_i (f_i + g_i - \phi). \mathrm{~Q.E.D.}
     \end{split}
 \end{equation}
-I will still need to go back through this and work through each line of algebra, though some of it is obvious.
+Observe that the $\theta$ term canceled out entirely, as did the ``free-floating'' constant terms.
 Replicating it line-by-line in the death-birth case might be instructive.
 
 \subsection{The replicator equation with death-birth updating}
@@ -431,7 +432,7 @@ The equilibium conditional frequencies are still given by equation \ref{eq:equil
 In order for the frequency of individual $i$ to increase, we require that a non-$i$ (call it $j$) individual be chosen to die and an $i$ individual replace it.
 The first event occurs with probability
 \begin{equation}
-    x_j \sum_{k_1 + \cdots + k_n = k}\frac{k!}{k_1! k_2! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k^n},
+    \sum_{j \neq i} x_j \sum_{k_1 + \cdots + k_n = k}\frac{k!}{k_1! k_2! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k^n},
 \end{equation}
 and the second occurs with probability
 \begin{equation}
@@ -454,9 +455,9 @@ and the second occurs with probability
 So the overall rate of change of $x_i$ is
 \begin{equation}
     \begin{split}
-        \dot{x}_i & = \sum_{k_1 + \cdots + k_n = k, j \neq i } x_j \cdot \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|k}^{k_n} \Big) \cdot \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}
+        \dot{x}_i = \sum_{j \neq i} x_j & \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k_n} \Big) \cdot \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}
         \\
-        & - \sum_{k_1 + \cdots + k_n = k, j \neq i } x_j \cdot \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|k}^{k_n} \Big) \cdot \Big( 1- \frac{k_i W_{i|i}}{\sum_l k_l W_{l|j}} \Big)
+        - x_i & \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|i}^{k_1} \cdots q_{n|i}^{k_n} \Big) \cdot \Big( 1- \frac{k_i W_{i|i}}{\sum_l k_l W_{l|i}} \Big)
         \\
         & \approx w \frac{(k+1)(k-2)^2}{k (k-1)} \cdot x_i (f_i + g_i - \phi),
     \end{split}
@@ -480,28 +481,30 @@ Let's see if we can work our way back to this.
 First, we will probably want to know what $\sum_l k_l W_{l|j}$ looks like:
 \begin{equation}
     \begin{split}
-        \sum_l k_l W_{l|j} & = \sum_l k_l \Big[ 1 - w + w \cdot \Big( a_{lj} + \sum_m (k-1) q_{m|l} a_{ml} \Big) \Big]
+        \sum_l k_l W_{l|j} & = \sum_l k_l \Big[ 1 - w + w \cdot \Big( a_{lj} + \sum_m (k-1) q_{m|l} a_{lm} \Big) \Big]
         \\
-        & = (1 - w)\sum_l k_l + w \sum_l k_l \Big( a_{lj} + \sum_m (k-1) q_{m|l} a_{ml} \Big)
+        & = (1 - w)\sum_l k_l + w \sum_l k_l \Big( a_{lj} + \sum_m (k-1) q_{m|l} a_{lm} \Big)
         \\
-        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + \sum_m (k-1) \frac{(k-2) x_m + \delta_{ml}}{k-1} a_{ml} \Big)
+        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + \sum_m (k-1) \frac{(k-2) x_m + \delta_{ml}}{k-1} a_{lm} \Big)
         \\
-        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + \sum_m [(k-2) x_m + \delta_{ml}] a_{ml} \Big)
+        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + \sum_m [(k-2) x_m + \delta_{ml}] a_{lm} \Big)
         \\
-        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml}  \Big).
+        & = (1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm}  \Big).
     \end{split}
 \end{equation}
 The ratio $\frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}$ is
 \begin{equation}
     \begin{split}
-        \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}} & = \frac{(1 - w)k_i + w k_i \Big( a_{ij} + \sum_l (k-1) q_{l|i} a_{il} \Big) }{(1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big) }
+        \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}} & = \frac{(1 - w)k_i + w k_i \Big( a_{ij} + \sum_l (k-1) q_{l|i} a_{il} \Big) }{(1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) }
         \\
-        & = \frac{(1 - w)k_i + w k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) }{(1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big) }.
+        & = \frac{(1 - w)k_i + w k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) }{(1 - w)k + w \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) }
         \\
-        \approx & \frac{k_i}{k} + w (bc - ad) + O(w^2),
+        & \approx \frac{k_i}{k} + w \Big[ k_i \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) - kk_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) \Big] + O(w^2),
+        \\
+        & = \frac{k_i}{k} + w \Big[ k_i \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) - kk_i \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big] + O(w^2),
     \end{split}
 \end{equation}
-using a Taylor approximation trick similar to the above:
+rewriting the denominator to avoid using $l$ twice and using a Taylor approximation trick similar to equation \ref{eq:taylor_trick}:
 \begin{equation}
     \begin{split}
         f(w) & = \frac{(1 - w)a + wb}{(1 - w)c + wd}
@@ -513,22 +516,168 @@ using a Taylor approximation trick similar to the above:
         & \approx \frac{a}{c} + w(ad - bc),
     \end{split}
 \end{equation}
-with $a = k_i$, $b = k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) $, $c = k$, $d = \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big)$.
+with $a = k_i$, $b = k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) $, $c = k$, $d = \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big)$, and $w \ll 1$.
 
 We can now try to expand out the terms of equation \ref{eq:db_replicator}.
-The first line becomes
+Note that we can immediately rewrite it as
 \begin{equation}
     \begin{split}
-        & \sum_{k_1 + \cdots + k_n = k, j \neq i } x_j \cdot \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|k}^{k_n} \Big) \cdot \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}
+        \dot{x}_i = \sum_{j \neq i} x_j & \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k_n} \Big) \cdot \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}
         \\
-        = & \sum_{k_1 + \cdots + k_n = k, j \neq i } x_j \cdot \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1}
-        \cdots q_{n|k}^{k_n} \Big)
+        - x_i & \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|i}^{k_1} \cdots q_{n|i}^{k_n} \Big) \cdot \Big( 1- \frac{k_i W_{i|i}}{\sum_l k_l W_{l|i}} \Big)
         \\
-        & \cdot \Big\{ \frac{k_i}{k} + w \Big[ k_i \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{ml} \Big) - k k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_l x_l a_{il} \Big) \Big] \Big\}
+        = \sum_j x_j & \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k_n} \Big) \cdot \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}
         \\
-        & = x_j q_j + x_j k w q_j \sum_l
+        - x_i & \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|i}^{k_1} \cdots q_{n|i}^{k_n} \Big).
     \end{split}
-    \label{eq:db_sum_1}
+    \label{eq:db_replicator_rearranged}
+\end{equation}
+We will probably want to reuse the identities
+\begin{equation}
+    \begin{split}
+        a_{i \bullet} & = \sum_l x_l a_{il}
+        \\
+        a_{\bullet i} & = \sum_l x_l a_{li}
+        \\
+        a_{\bullet} & = \sum_l x_l a_{ll}
+        \\
+        a_{\bullet \bullet} & = \sum_{l,m} x_l x_m a_{lm}
+    \end{split}
+\end{equation}
+from above.
+The second term quite neatly becomes $-x_i$.
+The first term becomes
+\begin{equation}
+    \begin{split}
+        & \sum_j x_j \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k_n} \Big) \cdot \frac{k_i W_{i|j}}{\sum_l k_l W_{l|j}}
+        \\
+        = & \sum_j x_j \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1}
+        \cdots q_{n|j}^{k_n} \Big)
+        \\
+        & \cdot \Big\{ \frac{k_i}{k} + w \Big[ k_i \sum_l k_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) - k k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big] \Big\}
+        \\
+        = \sum_j x_j q_{i|j} + w & \sum_j x_j \sum_{k_1 + \cdots + k_n = k} \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1}
+        \cdots q_{n|j}^{k_n} \Big)
+        \\
+        & \cdot \Big[ \sum_l k_i k_l \Big(a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) - k k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        = x_i + w & \sum_j x_j \sum_{k_1 + \cdots + k_n = k} \Big[ \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1}
+        \cdots q_{n|j}^{k_n} \Big) \sum_l k_i k_l \Big(a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) \Big]
+        \\
+        - w & \sum_j x_j \sum_{k_1 + \cdots + k_n = k} \Big[ \Big( \frac{k!}{k_1! \cdots k_n!} q_{1|j}^{k_1} \cdots q_{n|j}^{k_n} \Big) k k_i \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        = x_i + w & \sum_j x_j \sum_l \Big[ \Big( k q_{i|j} \delta_{il} + k(k-1) q_{i|j}q_{l|j} \Big) \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) \Big]
+        \\
+        - w & \sum_j x_j \sum_l k^2 q_{i|j} \Big( a_{lj} + a_{ll}+ (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        = x_i + w & \sum_j x_j \Big[ k q_{i|j} \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        + w & \sum_j x_j \sum_l \Big[ \Big(k(k-1) q_{i|j}q_{l|j} \Big) \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) \Big]
+        \\
+        - w & \sum_j x_j k^2 q_{i|j} \Big( a_{ij} + a_{ii}+ (k-2) \sum_m x_m a_{im} \Big)
+        \\
+        = x_i + w & \sum_j x_j \Big[ k \frac{(k-2)x_i + \delta_{ij}}{k-1} \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        + w & \sum_j x_j \sum_l \Big[ \Big(k(k-1) \frac{(k-2)x_i + \delta_{ij}}{k-1}\frac{(k-2)x_l + \delta_{lj}}{k-1} \Big) \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) \Big]
+        \\
+        - w & \sum_j x_j k^2 \frac{(k-2)x_i + \delta_{ij}}{k-1} \Big( a_{ij} + a_{ii}+ (k-2) \sum_m x_m a_{im} \Big)
+        \\
+        = x_i + w & \sum_j x_j \Big[ k \frac{(k-2)x_i + \delta_{ij}}{k-1} \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        + w & \sum_j x_j \sum_l \Big[ \Big(k(k-1) \frac{(k-2)x_i + \delta_{ij}}{k-1}\frac{(k-2)x_l + \delta_{lj}}{k-1} \Big) \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) \Big]
+        \\
+        - w & \sum_j x_j k^2 \frac{(k-2)x_i + \delta_{ij}}{k-1} \Big( a_{ij} + a_{ii}+ (k-2) \sum_m x_m a_{im} \Big)
+        \\
+        = x_i + w & \Big[ x_i k \frac{k-2}{k-1} \Big( 2a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big] + w \sum_j x_j \Big[ k\frac{k-2}{k-1} x_i \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        + w & \sum_j \sum_l x_j \Big[ k(k-1) \frac{(k-2)^2 x_i x_l + (k-2) x_i \delta_{lj} + (k-2) x_l \delta_{ij} + \delta_{ij}\delta_{lj}}{(k-1)^2} \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) \Big]
+        \\
+        - w & \sum_j x_j k^2 \frac{(k-2)x_i + \delta_{ij}}{k-1} \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big).
+    \end{split}
+    \label{eq:db_sum}
+\end{equation}
+This is going to quickly become unwieldy unless we are careful. Considering only the first line of the final term of equation \ref{eq:db_sum} and dropping the $x_i$, we have:
+\begin{equation}
+    \begin{split}
+        & w \Big[ x_i k \frac{k-2}{k-1} \Big( 2a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big] + w \sum_j x_j \Big[ k\frac{k-2}{k-1} x_i \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        = & w \frac{k(k-2)}{k-1} x_i \Big[ \Big(2 a_{ii} + (k-2) \sum_m x_m a_{im} \Big) + \sum_j x_j \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        = & w \frac{k(k-2)}{k-1} x_i \Big[ \Big(2 a_{ii} + (k-2) a_{i \bullet} \Big) + a_{i \bullet} + \sum_j x_j a_{ii} + (k-2) \sum_j x_j \sum_m x_m a_{im} \Big) \Big]
+        \\
+        = & w \frac{k(k-2)}{k-1} x_i \Big[ 2 a_{ii} + (k-2) a_{i \bullet} \Big) + a_{i \bullet} + a_{ii} + (k-2) a_{i \bullet} \Big]
+        \\
+        = & w \frac{k(k-2)}{k-1} x_i \Big( 3 a_{ii} + (2k-3) a_{i \bullet} \Big).
+    \end{split}
+\end{equation}
+The second line becomes
+\begin{equation}
+    \begin{split}
+        & w \sum_j \sum_l x_j \Big[ k(k-1) \frac{(k-2)^2 x_i x_l + (k-2) x_i \delta_{lj} + (k-2) x_l \delta_{ij} + \delta_{ij}\delta_{lj}}{(k-1)^2} \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big) \Big]
+        \\
+        = & w \frac{k}{k-1} \sum_j \sum_l x_j (k-2)^2 x_i x_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        + & w \frac{k}{k-1} \sum_j \sum_l x_j (k-2) x_i \delta_{lj} \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        + & w \frac{k}{k-1} \sum_j \sum_l x_j (k-2) x_l \delta_{ij} \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        + & w \frac{k}{k-1} \sum_j \sum_l x_j \delta_{ij} \delta_{lj} \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        = & w \frac{k(k-2)^2}{k-1} x_i \sum_j \sum_l x_j x_l \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        + & w \frac{k(k-2)}{k-1} x_i \sum_j \sum_l x_j \delta_{lj} \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        + & w \frac{k(k-2)}{k-1} \sum_j \sum_l x_j x_l \delta_{ij} \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        + & w \frac{k}{k-1} \sum_j \sum_l x_j \delta_{ij} \delta_{lj} \Big( a_{lj} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        = & w \frac{k(k-2)^2}{k-1} x_i \Big( a_{\bullet \bullet} + a_{\bullet} + (k-2) a_{\bullet \bullet} \Big)
+        \\
+        + & w \frac{k(k-2)}{k-1} x_i \sum_l x_l \Big( a_{ll} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        + & w \frac{k(k-2)}{k-1} x_i \sum_l x_l \Big( a_{li} + a_{ll} + (k-2) \sum_m x_m a_{lm} \Big)
+        \\
+        + & w \frac{k}{k-1} x_i \Big( a_{ii} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big)
+        \\
+        = & w \frac{k(k-2)^2}{k-1} x_i \Big( (k-1) a_{\bullet \bullet} + a_{\bullet} \Big) + w \frac{k(k-2)}{k-1} x_i \Big( 2a_{\bullet} + (k-2) a_{\bullet \bullet} \Big)
+        \\
+        + & w \frac{k(k-2)}{k-1} x_i \Big( a_{\bullet i} + a_{\bullet} + (k-2) a_{\bullet \bullet} \Big) + w \frac{k}{k-1} x_i \Big( 2 a_{ii} + (k-2) a_{\bullet \bullet} \Big).
+    \end{split}
+\end{equation}
+Finally, the third term becomes
+\begin{equation}
+    \begin{split}
+        w \frac{k^2}{k-1} & \sum_j x_j \Big( (k-2)x_i + \delta_{ij} \Big) \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big)
+        \\
+        = w \frac{k^2}{k-1} & \Big[ (k-2) x_i \sum_j x_j \Big( a_{ij} + a_{ii} + (k-2) \sum_m x_m a_{im} \Big) + x_i \Big( a_{ii} + a_{ll} + (k-2) \sum_m x_m a_{im} \Big) \Big]
+        \\
+        = w \frac{k^2}{k-1} x_i & \Big[ (k-2) a_{i \bullet} + a_{ii} + (k-2) a_{\bullet \bullet} + 2a_{ii} + a_{i \bullet} \Big].
+    \end{split}
+\end{equation}
+Combining all these (recalling that the third term is to be \emph{subtracted}, not added) will, I'm sure, yield the expected behavior
+\begin{equation}
+    \begin{split}
+        \dot{x}_i = & w \frac{(k+1)(k-2)^2}{k(k-1)} \cdot x_i \Big( a_{i \bullet} + \frac{(k+1)a_{ii} + a_{i \bullet} - a_{\bullet i} - (k+1) a_{\bullet}}{(k+1)(k-2)} - a_{\bullet \bullet} \Big)
+        \\
+        = & w \frac{(k+1)(k-2)^2}{k(k-1)} \cdot x_i (f_i + g_i - \phi),
+    \end{split}
+\end{equation}
+which is just equation \ref{eq:db_replicator}, though I can't be bothered to actually check right now.
+
+Okay, we might as well check now.
+Dropping all the $x_i$ and $w$ terms yields
+\begin{equation}
+    \begin{split}
+        \dot{x}_i \sim & \frac{k(k-2)}{k-1} \Big( 3a_{ii} + (2k - 3) a_{i \bullet} \Big) + \frac{k(k-2)^2}{k-1} \Big( (k-1) a_{\bullet \bullet} + a_{\bullet} \Big) + \frac{k(k-2)}{k-1}\Big( 3a_{\bullet} + a_{\bullet i} + 2(k-2)a_{\bullet \bullet} \Big)
+        \\
+        + & \frac{k}{k-1} \Big( 2a_{ii} + (k-2) a_{\bullet \bullet} \Big) - \frac{k^2}{k-1} \Big( (k-2) a_{i \bullet} + a_{ii} + (k-2) a_{\bullet \bullet} + 2a_{ii} + a_{i \bullet} \Big).
+    \end{split}
+\end{equation}
+The desired prefactor is $(k+1)(k-2)^2/k(k-1)$, so we have
+\begin{equation}
+    \begin{split}
+        \dot{x}_i \sim & \frac{(k+1)(k-2)^2}{k(k-1)} \Big( \frac{(k+1)(k-2)}{k} 3a_{ii} + \frac{k}{(k+1)(k-2)} (2k-3) a_{i \bullet} \Big) \ldots
+    \end{split}
 \end{equation}
 %
 % As before, we'll start with the two strategy case.
