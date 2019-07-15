@@ -1,0 +1,34 @@
+{
+  "N":
+  {
+    "value": [1e4]
+  },
+  "k":
+  {
+    "value": [3, 4, 5]
+  },
+  "w":
+  {
+    "value": [1e-4, 1e-3, 1e-2, 1e-1]
+  },
+  "update_type":
+  {
+    "value": ["bd", "db"]
+  },
+  "init_freq":
+  {
+    "value": 0.5
+  },
+  "num_trials":
+  {
+    "value": 100
+  },
+  "num_gens":
+  {
+    "value": 1e4
+  },
+  "output":
+  {
+    "value": "output/test_game_graph_3.csv"
+  }
+}

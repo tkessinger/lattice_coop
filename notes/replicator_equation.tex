@@ -679,52 +679,98 @@ The desired prefactor is $(k+1)(k-2)^2/k(k-1)$, so we have
         \dot{x}_i \sim & \frac{(k+1)(k-2)^2}{k(k-1)} \Big( \frac{(k+1)(k-2)}{k} 3a_{ii} + \frac{k}{(k+1)(k-2)} (2k-3) a_{i \bullet} \Big) \ldots
     \end{split}
 \end{equation}
-%
-% As before, we'll start with the two strategy case.
-% Then equation \ref{eq:bd_replicator} simplifies to
-% \begin{equation}
-%     \begin{split}
-%         \dot{x}_1 = \frac{\mathbf{E}[\Delta x_1]}{\Delta t} & = \sum_{k_1 + k_2 = k}  \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} q_{1|1}^{k_1} q_{2|1}^{k_2} \Big) \cdot W_{(1; k_1, k_2)} \Big] \cdot \Big(1 - \frac{k_1}{k} \Big)\Big/ \bar{W}
-%         \\
-%         & - \sum_{k_1 + k_2 = k} \Big[ x_2 \cdot \Big( \frac{k!}{k_1! k_2!} q_{1|2}^{k_1} q_{2|2}^{k_2} \Big) \cdot W_{(2; k_1, k_2)} \Big] \cdot \frac{k_1}{k} \Big/ \bar{W},
-%     \end{split}
-%     \label{eq:bd_replicator_ij}
-% \end{equation}
-% with
-% \begin{equation}
-%     \begin{split}
-%         W_{(1; k_1, k_2)} & = 1 - w + w(k_1 a_{11} + k_2 a_{12}),
-%         \\
-%         W_{(2; k_1, k_2)} & = 1 - w + w(k_1 a_{21} + k_2 a_{22}),
-%         \\
-%         q_{1|1} & = \frac{(k-2)x_1 + 1}{k-1},
-%         \\
-%         q_{1|2} & = \frac{(k-2)x_1}{k-1},
-%         \\
-%         q_{2|1} & = \frac{(k-2)x_2}{k-1},
-%         \\
-%         q_{2|2} & = \frac{(k-2)x_2 + 1}{k-1}.
-%     \end{split}
-% \end{equation}
-% We might as well see if we can combine all of equation \ref{eq:bd_replicator_ij} into one sum.
-% %\begin{equation}
-% \begin{alignat*}{2}
-%     \dot{x}_1 = & \frac{1}{\bar{W}} \sum_{k_1 + k_2 = k} & \Bigg\{ & \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} q_{1|1}^{k_1} q_{2|1}^{k_2} \Big) \cdot W_{(1; k_1, k_2)} \Big] \cdot \Big(1 - \frac{k_1}{k} \Big)
-%     \\
-%     && - &\Big[ x_2 \cdot \Big( \frac{k!}{k_1! k_2!} q_{1|2}^{k_1} q_{2|2}^{k_2} \Big) \cdot W_{(2; k_1, k_2)} \Big] \cdot \frac{k_1}{k} \Bigg\}
-%     \\
-%     = & \frac{1}{\bar{W}(k-1)^k} \sum_{k_1 + k_2 = k} & \Bigg\{ & \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} [(k-2)x_1+1]^{k_1}[(k-2)x_1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{11} + k_2 a_{12}]) \Big] \cdot \Big(1 - \frac{k_1}{k} \Big)
-%     \\
-%     && - & \Big[ x_2 \cdot \Big( \frac{k!}{k_1! k_2!} [(k-2)x_2]^{k_1}[(k-2)x_2 + 1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{21} + k_2 a_{22}]) \Big] \cdot \frac{k_1}{k} \Bigg\}
-%     \\
-%     = & \frac{1}{\bar{W}(k-1)^k} \sum_{k_1 + k_2 = k} & \Bigg\{ & \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} [(k-2)x_1+1]^{k_1}[(k-2)x_1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{11} + k_2 a_{12}]) \Big]
-%     \\
-%     && - & \Big[ x_1 \cdot \Big( \frac{k!}{k_1!k_2!} [(k-2)x_1+1]^{k_1}[(k-2)x_1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{11} + k_2 a_{12}]) \Big] \cdot \frac{k_1}{k}
-%     \\
-%     && - & \Big[ x_2 \cdot \Big( \frac{k!}{k_1! k_2!} [(k-2)x_2]^{k_1}[(k-2)x_2 + 1]^{k_2} \Big) \cdot (1 - w + w[k_1 a_{21} + k_2 a_{22}]) \Big] \cdot \frac{k_1}{k} \Bigg\}
-%     \label{eq:bd_replicator_12}
-% \end{alignat*}
-%\end{equation}
+This just bypasses my interest in verifying that all the algebra is correct, though I might do it later.
+
+\subsection{What does the separation of timescales argument really mean?}
+
+The preceding analysis relies on the idea that the $q_{i|j}$ change ``faster'' than the $x_i$, so that changes in $q_{i|j}$ ignore selection and equilibrate rapidly (time scale of order $1$) in response to longer term changes in the $x_i$ (on time scales of order $w$).
+Let's see if we can figure out what that really means.
+The analysis of \citet{pena.etal_2016} might be instructive here.
+Switching to their notation, we'll use $p_A$ and $p_B$ for the strategy frequencies and $q_{X|Y}$ for the conditional frequencies (with $X, Y \in A, B$).
+For each site $X$, the probability of finding $j$ $A$ players among its $k$ neighbors becomes
+\begin{equation}
+    {k \choose j} q_{A|X}^j (1 - q_{B|X})^{k-j},
+\end{equation}
+and for each pair $XY$, the probability of finding $j$ $A$ players among the $k-1$ neighbors of $X$, excluding $Y$, is
+\begin{equation}
+    {k-1 \choose j} q_{A|X}^j (1 - q_{B|X})^{k-1-j}.
+\end{equation}
+We can then write down explicit expressions for the change in $p_A$ and $p_{AA}$ and see what the separation of timescales argument really means.
+
+Consider death-birth updating.
+Suppose a $B$ player is chosen to die with probability $p_B$.
+Its neighbors compete to occupy its space.
+It has $k_A$ $A$ neighbors with probability
+\begin{equation}
+    {k \choose k_A} q_{A|B}^{k_A} (1 - q_{A|B})^{k-k_A},
+\end{equation}
+and each of them has effective payoff $f_A^B = 1 - w + w \pi_A^B$, with
+\begin{equation}
+    \pi_A^B = \sum_{j=0}^{k-1} {k-1 \choose j} q_{A|A}^j (1-q_{A|A})^{k-1-j} a_j
+\end{equation}
+the payoff to an $A$ player with one $B$ neighbor and $k-1$ other neighbors.
+Likewise, the effective payoff of each $B$ player is $f_B^B = 1 - w + w \pi_B^B$, with
+\begin{equation}
+    \pi_B^B = \sum_{j=0}^{k-1} {k-1 \choose j} q_{A|B}^j (1-q_{A|B})^{k-1-j} b_j.
+\end{equation}
+An $A$ player replaces the vacant spot left by a deceased $B$ player with probability
+\begin{equation}
+    \begin{split}
+    \frac{k_A f_A^B}{k_A f_A^B + k_B f_B^B} & \approx \frac{k_A}{k} + w \frac{k_A(k-k_A)}{k^2}(\pi_A^B - \pi_B^B),
+    \\
+    \pi_A^B - \pi_B^B & = \sum_{j=0}^{k-1} {k-1 \choose j} q_{A|A}^j (1-q_{A|A})^{k-1-j} a_j - \sum_{j=0}^{k-1} {k-1 \choose j} q_{A|B}^j (1-q_{A|B})^{k-1-j} b_j,
+\end{split}
+\end{equation}
+where the top equation is just gotten by taking a Taylor expansion in $w$:
+\begin{equation}
+    \begin{split}
+        \frac{k_A f_A^B}{k_A f_A^B + k_B f_B^B} & = \frac{k_A (1 - w + w \pi_A^B)}{k_A (1 - w + w \pi_A^B) + (k-k_A)(1 - w + w \pi_B^B)}
+        \\
+        & = \frac{k_A(1-w+w\pi_A^B)}{k(1-w) + k_A w \pi_A^B + (k-k_A) w \pi_B^B}
+        \\
+        & = \frac{k_A(1-w+w\pi_A^B)}{k(1-w + w \pi_B^B) + k_A w (\pi_A^B -\pi_B^B)}
+        \\
+        & \approx \frac{k_A}{k} + w\frac{k_A}(k-k_A)}{k^2}(\pi_A^B - \pi_B^B).
+    \end{split}
+\end{equation}
+So the frequency of $A$ players increments by $1/N$ with probability
+\begin{equation}
+    \begin{split}
+        \mathrm{Pr} \Big( \Delta p_A = \frac{1}{N} \Big) = & p_B \sum_{k_A = 0}^k {k \choose k_A} q_{A|B}^{k_A} (1 - q_{A|B})^{k-k_A} \frac{k_A f_A^B}{k_A f_A^B + k_B f_B^B}
+        \\
+        \approx & p_B \Big\{ q_{A|B} + w \frac{k-1}{k} q_{A|B} (1-q_{A|B})(\pi_A^B - \pi_B^B) \Big\}
+        \\
+        \approx & p_{AB} \Big\{ 1 + w\frac{k-1}{k} q_{B|B} (\pi_A^B - \pi_B^B) \Big\}.
+    \end{split}
+\end{equation}
+Likewise, the number of $AA$ pairs increases by $k_A$, so the proportion of $AA$ players increases by $2k_A/kN$ with probability
+\begin{equation}
+    \mathrm{Pr} \Big( \Delta p_{AA} = \frac{2k_A}{kN} \Big) = p_B {k \choose k_A} q_{A|B}^{k_A} (1 - q_{A|B})^{k-k_A} \frac{k_A f_A^B}{k_A f_A^B + k_B f_B^B}.
+\end{equation}
+Similarly, the probabilities in the case that an $A$ player is chosen to die become
+\begin{equation}
+    \begin{split}
+        \mathrm{Pr} \Big( \Delta p_A = -\frac{1}{N} \Big) = & p_A \sum_{k_B = 0}^k {k \choose k_B} q_{A|A}^{k_B} (1 - q_{A|A})^{k-k_B} \frac{k_B f_B^A}{k_A f_A^A + k_B f_B^A}
+        \\
+        \approx & p_A \Big\{ q_{B|A} + w \frac{k-1}{k} q_{A|A} (1-q_{A|A})(\pi_B^A - \pi_A^A) \Big\}
+        \\
+        \approx & p_{BA} \Big\{ 1 + w\frac{k-1}{k} q_{A|A} (\pi_B^A - \pi_A^A) \Big\}.
+    \end{split}
+\end{equation}
+Concordantly, the time derivative of $p_A$, assuming one replacement event occurs per unit time, is given by
+\begin{equation}
+    \dot{p}_A = \frac{1}{N} \mathrm{Pr} \Big( \Delta p_A = \frac{1}{N} \Big) - \frac{1}{N} \Big( \Delta p_A = -\frac{1}{N} \Big) \approx w\frac{k-1}{kN} p_{AB} [ q_{B|B}(\pi_A^B - \pi_B^B) - q_{A|A} (\pi_B^A - \pi_A^A) ].
+\end{equation}
+Likewise, the change in $p_{AA}$ is
+\begin{equation}
+    \begin{split}
+        \dot{p}_{AA} = & \sum_{k_A = 0}^k \Big( \frac{2k_A}{kN}) \mathrm{Pr} \Big( \Delta p_{AA} = \frac{2k_A}{kN} \Big) + \sum_{k_A = 0}^k \Big( -\frac{2k_A}{kN}) \mathrm{Pr} \Big( \Delta p_{AA} = -\frac{2k_A}{kN} \Big)
+        \\
+        = & \frac{2}{kN} p_{AB} [ 1 + (k-1) (q_{A|B} - q_{A|A})].
+    \end{split}
+\end{equation}
+Observe that $\dot{p}_{AA}$ does not depend on $w$, to first order, whereas $\dot{p}_A$ does.
+In effect, $p_{AA}$ rapidly equilibrates so that $1 + (k-1)(q_{A|B} - q_{A|A}) = 0$, which is just another way of rewriting equation \ref{eq:equilibrium_freqs}.
 
 \bibliographystyle{plainnat}
 \bibliography{notes_bib}

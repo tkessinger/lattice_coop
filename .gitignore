@@ -27,3 +27,6 @@ output/*
 
 # MacOS nuisance file
 .DS_Store
+
+# nohup output file
+nohup.out
