@@ -109,7 +109,7 @@ function main(
         "update_type" => Dict("value" => "bd", "type" => String),
         "num_gens" => Dict("value" => 100, "type" => Int64),
         "num_trials" => Dict("value" => 1, "type" => Int64),
-        "output" => Dict("value" => "test.csv", "type" => String)
+        "output" => Dict("value" => "output/test.csv", "type" => String)
     ])
     pars = read_parameters(defpars, parsed_args["input"])
 
