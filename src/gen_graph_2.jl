@@ -14,6 +14,97 @@ using Random, StatsBase, Combinatorics, Revise
 N = 500
 g = [1, 1]
 
+mutable struct MultiGameGraph
+    # by design this is a random regular graph
+
+    n::Int64 # number of nodes
+    g::Array{Int64, 1} # degrees of edge-typed subgraphs
+    w::Float64 # strength of selection
+    game::Function # an associated game to be played on the graph
+    graph::Dict{Int64, Array{Int64, 2}} #a Dict of individuals and their neighbors
+
+    # the next three are the only mutable attributes
+    generation::Int64 # current generation
+    strategies::Array{Int64, 1} # an array of individuals' strategies
+    fitnesses::Array{Float64, 1} # individuals' fitnesses depending on,
+        # e.g., neighbor payoffs
+end
+
+function DoL_payoff(
+    graph::Dict{Int64, Array{Int64, 2}},
+    strategies::Array{Int64, 1},
+    fitnesses::Array{Float64, 1},
+    indv::Int64
+    )
+    s1 = sum(graph[indv, 1] .== 1) # number of cooperators along edgetype 1
+    s2 = sum(graph[indv, 1] .== 1) # number of cooperators along edgetype 2
+    # if indv is a cooperator
+    if strategies[indv] == 1
+        if s2 >= 1
+            return (s1 + s2 + 1)*(B-C)
+        else
+            return -C
+        end
+    # if indv is a defector
+    elseif strategies[indv] == 2
+        if s1 >= 1 && s2 >= 1
+            return (s1 + s2)*B
+        else
+            return 0
+        end
+    end
+end
+
+function initialize_fitnesses!(
+    gg::MultiGameGraph
+    )
+    # assign the correct fitness values to each individual in the population
+    # ideally this would be done within a constructor
+    for indv in vertices(gg.graph)
+        payoff = 0
+        for neighbor in neighbors(gg.graph, indv)
+            payoff += gg.game[gg.strategies[indv], gg.strategies[neighbor]]
+        end
+        fitness = 1 - gg.w + gg.w * payoff
+        gg.fitnesses[indv] = fitness
+    end
+end
+
+function update_indv!(
+    gg::MultiGameGraph,
+    invader::Int64,
+    invadee::Int64
+    )
+    # if an individual gets replaced, we need to update their fitness
+    # as well as that of all their neighbors
+    update_strategies!(gg, invader, invadee)
+    update_fitness!(gg, invadee)
+end
+
+function update_strategies!(
+    gg::MultiGameGraph,
+    invader::Int64,
+    invadee::Int64
+    )
+    # replaces the strategy of a replaced individual
+    gg.strategies[invadee] = gg.strategies[invader]
+end
+
+function update_fitness!(
+    gg::GameGraph,
+    indv::Int64
+    )
+    # updates the fitness of an individual whose strategy is replaced
+    # as well as the fitnesses of all their neighbors
+    payoff = 0.0
+    fitness = 0.0
+    for neighbor in neighbors(gg.graph, indv)
+        payoff += gg.game[gg.strategies[indv], gg.strategies[neighbor]]
+    end
+    fitness = 1.0 - gg.w + gg.w * payoff
+    return fitness
+end
+
 
 function is_suitable(
     edges::Array{Array{Int64,1}},
@@ -23,7 +114,7 @@ function is_suitable(
     # given a Dict of potential edges,
     # see if there's any way to construct a new edge
 
-    # if the list is empty, everything is hunky dory
+    # if the Dict is empty, everything is hunky dory
     if isempty(potential_edges)
         return true
     end
@@ -192,23 +283,30 @@ function recursive_graph_gen(
 end
 
 function assemble_connected_list(
-    all_neighbors::Array{Array{Int64,1},1},
-    curr_connections::Array{Int64,1},
-    indv::Int64,
+    all_neighbors::Array{Array{Int64,1},1}, # list of neighbors of each individual
+    curr_connections::Array{Int64,1}, # list containing individuals that have already been counted
+    indv::Int64, # current individual
     )
+    # create a list of all individuals the current individual is connected to
+    # this is used to determine whether the graph is connected or not
+
+    # if the current individual isn't on the list, put them there
     if indv ∉ curr_connections
         push!(curr_connections, indv)
     end
     for neighb in all_neighbors[indv]
         if neighb ∉ curr_connections
+            # add the neighbor to the list
             push!(curr_connections, neighb)
             #println("$indv, $neighb, $(vcat(tmp_connections, curr_connections ...))")
+            # add all their connections, and all their connections (recursively)
             new_connections = assemble_connected_list(all_neighbors, curr_connections, neighb)
             #println("$new_connections")
             #new_connections = assemble_connected_list(all_neighbors, curr_connections, neighb)
             [push!(curr_connections, x) for x in new_connections if x ∉ curr_connections]
         end
     end
+    # concatenate the list so ∈ will work
     return vcat(curr_connections ...)
 end
 
