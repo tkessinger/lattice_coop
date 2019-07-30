@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-## gen_graph.jl
+## MultiGraphGame.jl
 ##
 ## Author: Taylor Kessinger <tkess@sas.upenn.edu>
 ## Test methods for generating random regular graphs.
@@ -21,7 +21,7 @@ mutable struct MultiGameGraph
     g::Array{Int64, 1} # degrees of edge-typed subgraphs
     w::Float64 # strength of selection
     game::Function # an associated game to be played on the graph
-    graph::Dict{Int64, Array{Int64, 2}} #a Dict of individuals and their neighbors
+    graph::Dict{Int64, Array{Array{Int64, 1}, 1}} # a Dict of individuals and their neighbors by type
 
     # the next three are the only mutable attributes
     generation::Int64 # current generation
@@ -33,11 +33,10 @@ end
 function DoL_payoff(
     graph::Dict{Int64, Array{Int64, 2}},
     strategies::Array{Int64, 1},
-    fitnesses::Array{Float64, 1},
     indv::Int64
     )
-    s1 = sum(graph[indv, 1] .== 1) # number of cooperators along edgetype 1
-    s2 = sum(graph[indv, 1] .== 1) # number of cooperators along edgetype 2
+    s1 = sum([strategies[x] .== 1 for x in graph[indv][1]]) # number of cooperators along edgetype 1
+    s2 = sum([strategies[x] .== 1 for x in graph[indv][2]]) # number of cooperators along edgetype 2
     # if indv is a cooperator
     if strategies[indv] == 1
         if s2 >= 1
@@ -60,11 +59,8 @@ function initialize_fitnesses!(
     )
     # assign the correct fitness values to each individual in the population
     # ideally this would be done within a constructor
-    for indv in vertices(gg.graph)
-        payoff = 0
-        for neighbor in neighbors(gg.graph, indv)
-            payoff += gg.game[gg.strategies[indv], gg.strategies[neighbor]]
-        end
+    for indv in keys(gg.graph)
+        payoff = gg.game(gg.graph, gg.strategies, indv)
         fitness = 1 - gg.w + gg.w * payoff
         gg.fitnesses[indv] = fitness
     end
@@ -91,20 +87,56 @@ function update_strategies!(
 end
 
 function update_fitness!(
-    gg::GameGraph,
+    gg::MultiGameGraph,
     indv::Int64
     )
     # updates the fitness of an individual whose strategy is replaced
     # as well as the fitnesses of all their neighbors
-    payoff = 0.0
-    fitness = 0.0
-    for neighbor in neighbors(gg.graph, indv)
-        payoff += gg.game[gg.strategies[indv], gg.strategies[neighbor]]
-    end
+    payoff = gg.game(gg.graph, gg.strategies, indv)
     fitness = 1.0 - gg.w + gg.w * payoff
     return fitness
 end
 
+function evolve!(
+    gg::MultiGameGraph,
+    num_gens::Int64=1,
+    update_rule::String="birth_death"
+    )
+    # depending on the update rule and their fitnesses,
+    # replaces an individual with a neighbor
+
+    for i in 1:num_gens
+        if update_rule == "birth_death" || update_rule == "bd"
+            # an individual is chosen to reproduce proportional to fitness
+            # they replace a random neighbor
+            indv = sample(1:gg.n, Weights(gg.fitnesses))
+            neighbor_to_replace = rand(neighbors(gg.graph, indv))
+            # this if block is added in case there's no need to update
+            if gg.strategies[indv] != gg.strategies[neighbor_to_replace]
+                update_indv!(gg, indv, neighbor_to_replace)
+            end
+        elseif update_rule == "death_birth" || update_rule == "db"
+            # an individual is chosen to die at random
+            # their neighbors compete to replace them, proportional to fitness
+            indv = rand(1:gg.n)
+            neighbor_fitnesses = gg.fitnesses[neighbors(gg.graph, indv)]
+            invading_neighbor = sample(neighbors(gg.graph, indv), Weights(neighbor_fitnesses))
+            if gg.strategies[invading_neighbor] != gg.strategies[indv]
+                update_indv!(gg, invading_neighbor, indv)
+            end
+        elseif update_rule == "imitation" || update_rule == "im"
+            # an individual compares its fitness against its neighbors and itself
+            # then adopts their strategy, proportional to fitness
+            indv = rand(1:gg.n)
+            neighbor_fitnesses = gg.fitnesses[vcat(indv, neighbors(gg.graph, indv))]
+            invading_neighbor = sample(vcat(indv, neighbors(gg.graph, indv)), Weights(neighbor_fitnesses))
+            if gg.strategies[invading_neighbor] != gg.strategies[indv]
+                update_indv!(gg, invading_neighbor, indv)
+            end
+        end
+    gg.generation += 1
+    end
+end
 
 function is_suitable(
     edges::Array{Array{Int64,1}},
@@ -338,14 +370,13 @@ function generate_multitype_connected_graph(
     g::Array{Int64, 1} # list of number of edges of each type
     )
     num_attempts = 1
-    let
-    connected = false
-    while !(connected)
-        global gg = generate_multitype_random_regular(N, g)
-        connected = is_connected(gg[2])
-        num_attempts += 1
-        println("$num_attempts")#, $(gg[2])")
-    end
+    let connected = false
+        while !(connected)
+            global gg = generate_multitype_random_regular(N, g)
+            connected = is_connected(gg[2])
+            num_attempts += 1
+            #println("$num_attempts")#, $(gg[2])")
+        end
     end
     return gg
 end
