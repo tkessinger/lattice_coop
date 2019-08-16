@@ -145,7 +145,9 @@ module GenGraph
 
         # if any type of edge list is empty, try re-generating the graph
         # this function will return empty edge lists if there's no way to make them work
-        while any([isempty(edgelist) for edgelist in edges])
+        # recently added: the g[ei] > 0 condition
+        # this allows for the possibility of an empty subgraph
+        while any([(isempty(edgelist) && g[ei] > 0) for (ei, edgelist) in enumerate(edges)])
             edges = recursive_graph_gen(N, g, length(g))
         end
         # populate neighbors based on edges

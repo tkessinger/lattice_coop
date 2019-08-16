@@ -1,0 +1,59 @@
+{
+  "N":
+  {
+    "value": [2e2]
+  },
+  "k":
+  {
+    "value": 6
+  },
+  "g1":
+  {
+    "value": [1, 3, 5]
+  },
+  "w":
+  {
+    "value": [1e-2]
+  },
+  "update_type":
+  {
+    "value": ["db"]
+  },
+  "BC_ratio":
+  {
+    "range":
+    {
+      "start": 0.0,
+      "stop": 1.0,
+      "length": 11
+    }
+  },
+  "num_trials":
+  {
+    "value": 100
+  },
+  "num_runs":
+  {
+    "value": 100
+  },
+  "runs_per_graph":
+  {
+    "value": 10
+  },
+  "accumulate":
+  {
+    "value": 1
+  },
+  "DoL":
+  {
+    "value": 1
+  },
+  "test_strat":
+  {
+    "value": [1, 2]
+  },
+  "output":
+  {
+    "value": "output/su_fig4a.csv"
+  }
+}

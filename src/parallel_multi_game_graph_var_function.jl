@@ -101,8 +101,7 @@ function main(args)
         "w"     => Dict("value" => 1e-2,  "type" => Float64),
         "BC_ratio" => Dict("value" => 1.0, "type" => Float64),
         "update_type" => Dict("value" => "db", "type" => String),
-        "accumulate" => Dict("value" => "true", "type" => Bool),
-        "DoL" => Dict("value" => "true", "type" => Bool),
+        "fitness_function" => Dict("value" => "DoL_payoff", "type" => String),
         "num_trials" => Dict("value" => 100, "type" => Int64),
         "num_runs" => Dict("value" => 100, "type" => Int64),
         "runs_per_graph" => Dict("value" => 10, "type" => Int64),
@@ -141,14 +140,13 @@ function main(args)
             update_type = pard["update_type"]
             num_runs, num_trials = pard["num_runs"], pard["num_trials"]
             runs_per_graph = pard["runs_per_graph"]
-            accumulate_payoffs = pard["accumulate"]
-            DoL = pard["DoL"]
+            fitness_function = pard["fitness_function"]
             test_strat = pard["test_strat"]
 
             println("--- running ", pard["nrun"], " --- ")
             flush(stdout)
 
-            accumulate_payoffs ? (DoL ? game = DoL_payoff_accumulate : game = no_DoL_payoff_accumulate) : (DoL ? game = no_DoL_payoff : game = DoL_payoff)
+            game = get_game_function(fitness_function)
 
             g = [g1, g2]
 
@@ -246,4 +244,4 @@ end
 
 #main(ARGS)
 
-main(["--input", "submit/su_fig4c.json"])
+main(["--input", "submit/su_fig_multiply.json"])
