@@ -1,10 +1,9 @@
 #!/usr/bin/env julia
 
-## plt_w_csv.jl
+## plt_analytic_payoffs.jl
 ##
 ## Author: Taylor Kessinger <tkess@sas.upenn.edu>
-## Plot results of parallel_game_graph.jl.
-## Look for dependence on selection strength w.
+## Plot analytical values of the payoffs from Su et al. (2019).
 
 using Revise
 using CSV, PyPlot, Statistics, MultiEdgeGame

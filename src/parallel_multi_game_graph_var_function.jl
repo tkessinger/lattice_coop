@@ -101,7 +101,8 @@ function main(args)
         "w"     => Dict("value" => 1e-2,  "type" => Float64),
         "BC_ratio" => Dict("value" => 1.0, "type" => Float64),
         "update_type" => Dict("value" => "db", "type" => String),
-        "fitness_function" => Dict("value" => "DoL_payoff", "type" => String),
+        "fitness_function" => Dict("value" => "DoL_add", "type" => String),
+        "threshold" => Dict("value" => 1, "type" => Int64),
         "num_trials" => Dict("value" => 100, "type" => Int64),
         "num_runs" => Dict("value" => 100, "type" => Int64),
         "runs_per_graph" => Dict("value" => 10, "type" => Int64),
@@ -141,6 +142,7 @@ function main(args)
             num_runs, num_trials = pard["num_runs"], pard["num_trials"]
             runs_per_graph = pard["runs_per_graph"]
             fitness_function = pard["fitness_function"]
+            threshold = pard["threshold"]
             test_strat = pard["test_strat"]
 
             println("--- running ", pard["nrun"], " --- ")
@@ -162,7 +164,7 @@ function main(args)
                 graph = generate_multitype_connected_graph(n, g)
                 for j in 1:runs_per_graph
                     pop = Population(n, ones(Int64, n) * (2 - (test_strat == 2)), zeros(n), 0)
-                    mgg = MultiGameGraph(n, g, 2, graph[1], graph[2], game, w, [B,C])
+                    mgg = MultiGameGraph(n, g, 2, graph[1], graph[2], game, w, GameParams(B, C, threshold))
                     pop.strategies[rand(1:n)] = test_strat
                     initialize_fitnesses!(pop, mgg)
 
@@ -244,4 +246,4 @@ end
 
 #main(ARGS)
 
-main(["--input", "submit/su_fig_multiply.json"])
+main(["--input", "submit/su_fig_threshold_2.json"])

@@ -13,8 +13,8 @@ using CSV, PyPlot, Statistics, MultiEdgeGame
 verbose = false
 
 # load simulation output as a dataframe
-runs = CSV.read("output/su_fig_multiply_v_large_low_w.csv")
-#runs = CSV.read("output/su_fig4c_3.csv")
+#runs = CSV.read("output/su_fig_multiply_v_large_low_w.csv")
+runs = CSV.read("output/su_fig4a.csv")
 # dicts to store fixation probabilities
 c_fixation = Dict{Int64, Array{Float64, 1}}()
 d_fixation = Dict{Int64, Array{Float64, 1}}()
@@ -33,7 +33,7 @@ N = sort(unique(runs[:N]))[1]
 #accumulate_payoffs = sort(unique(runs[:accumulate]))[1]
 #accumulate_payoffs ? (game = DoL_payoff_accumulate) : (game = DoL_payoff)
 
-game = get_game_function("DoL_payoff_multiply")
+game = get_game_function("DoL_payoff_add")
 
 # get unique values from the runs dataframe
 g1_vals = sort(unique(runs[:g1]))
@@ -103,35 +103,35 @@ plt.legend(loc=2)
 plt.tight_layout()
 display(fig)
 
-fig = plt.figure(figsize = (6,6))
-for (gi, gi_val) in enumerate(g1_vals)
-    plt.plot(bc_ratio_vals, d_fixation[gi_val],
-       c = color_list[gi], ls = "", marker = ".", label = "g1 = $gi_val, g2 = $(k - gi_val)")
-    # plt.plot(bc_ratio_vals, analytical_result[gi_val],
-    #     c = color_list[gi])
-end
-plt.xlim([minimum(bc_ratio_vals), maximum(bc_ratio_vals)])
-plt.xlabel(L"B/C")
-#plt.ylim([-0.01, 0.01])
-plt.ylabel(L"\rho_B")
-plt.legend(loc=2)
-plt.tight_layout()
-display(fig)
-
-fig = plt.figure(figsize = (6,6))
-for (gi, gi_val) in enumerate(g1_vals)
-    plt.plot(bc_ratio_vals, c_fixation[gi_val],
-       c = color_list[gi], ls = "", marker = ".", label = "g1 = $gi_val, g2 = $(k - gi_val)")
-    # plt.plot(bc_ratio_vals, analytical_result[gi_val],
-    #     c = color_list[gi])
-end
-plt.xlim([minimum(bc_ratio_vals), maximum(bc_ratio_vals)])
-plt.xlabel(L"B/C")
-#plt.ylim([-0.01, 0.01])
-plt.ylabel(L"\rho_A")
-plt.legend(loc=2)
-plt.tight_layout()
-display(fig)
+# fig = plt.figure(figsize = (6,6))
+# for (gi, gi_val) in enumerate(g1_vals)
+#     plt.plot(bc_ratio_vals, d_fixation[gi_val],
+#        c = color_list[gi], ls = "", marker = ".", label = "g1 = $gi_val, g2 = $(k - gi_val)")
+#     # plt.plot(bc_ratio_vals, analytical_result[gi_val],
+#     #     c = color_list[gi])
+# end
+# plt.xlim([minimum(bc_ratio_vals), maximum(bc_ratio_vals)])
+# plt.xlabel(L"B/C")
+# #plt.ylim([-0.01, 0.01])
+# plt.ylabel(L"\rho_B")
+# plt.legend(loc=2)
+# plt.tight_layout()
+# display(fig)
+#
+# fig = plt.figure(figsize = (6,6))
+# for (gi, gi_val) in enumerate(g1_vals)
+#     plt.plot(bc_ratio_vals, c_fixation[gi_val],
+#        c = color_list[gi], ls = "", marker = ".", label = "g1 = $gi_val, g2 = $(k - gi_val)")
+#     # plt.plot(bc_ratio_vals, analytical_result[gi_val],
+#     #     c = color_list[gi])
+# end
+# plt.xlim([minimum(bc_ratio_vals), maximum(bc_ratio_vals)])
+# plt.xlabel(L"B/C")
+# #plt.ylim([-0.01, 0.01])
+# plt.ylabel(L"\rho_A")
+# plt.legend(loc=2)
+# plt.tight_layout()
+# display(fig)
 
 #[println("$keyt, $(mean(p_c_trajectories[(keyt)])[2])") for keyt in Base.product(k_vals, w_vals, update_types)]
 #
